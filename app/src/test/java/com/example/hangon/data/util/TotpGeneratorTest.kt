@@ -5,15 +5,10 @@ import org.junit.Test
 
 class TotpGeneratorTest {
 
-    // Cross-language parity fixture: this exact (secret, epoch) pair was fed through
-    // be-hangon's `derive_codeword()` (pyotp-based) and the resulting code recorded
-    // here. Generic RFC 6238 test vectors don't apply since they assume 30s/8-digit
-    // defaults, not this app's 60s/6-digit config — this is the one check that
-    // actually proves the two implementations agree.
     @Test
     fun `matches backend pyotp output for a fixed secret and time`() {
         val secret = "JBSWY3DPEHPK3PXP"
-        val epochSeconds = 1767225600L // 2026-01-01T00:00:00Z
+        val epochSeconds = 1767225600L
 
         val code = TotpGenerator.currentCode(secret, epochSeconds)
 

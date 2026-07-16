@@ -47,7 +47,6 @@ import com.example.hangon.ui.screens.FamilyListScreen
 import com.example.hangon.ui.screens.HomeScreen
 import com.example.hangon.ui.screens.LoginScreen
 import com.example.hangon.ui.screens.RegisterScreen
-import com.example.hangon.ui.screens.SplashScreen
 import com.example.hangon.ui.theme.BackgroundLight
 import com.example.hangon.ui.theme.HangOnBlue
 import com.example.hangon.ui.theme.SurfaceWhite
@@ -62,7 +61,7 @@ data class NavItem(
 )
 
 @Composable
-fun HangOnNavGraph() {
+fun HangOnNavGraph(startDestination: String) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -94,7 +93,7 @@ fun HangOnNavGraph() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Splash.route,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding),
             enterTransition = {
                 fadeIn(animationSpec = tween(300)) + slideInHorizontally(initialOffsetX = { it / 8 })
@@ -103,27 +102,11 @@ fun HangOnNavGraph() {
                 fadeOut(animationSpec = tween(200))
             }
         ) {
-            composable(Screen.Splash.route) {
-                SplashScreen(
-                    onSplashComplete = {
-                        // Skip Login if a Firebase session is already active.
-                        val destination = if (FirebaseAuth.getInstance().currentUser != null) {
-                            Screen.Home.route
-                        } else {
-                            Screen.Login.route
-                        }
-                        navController.navigate(destination) {
-                            popUpTo(Screen.Splash.route) { inclusive = true }
-                        }
-                    }
-                )
-            }
-
             composable(Screen.Login.route) {
                 LoginScreen(
                     onLoginSuccess = {
                         navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Splash.route) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     },
                     onNavigateToRegister = { navController.navigate(Screen.Register.route) }
@@ -134,7 +117,7 @@ fun HangOnNavGraph() {
                 RegisterScreen(
                     onRegisterSuccess = {
                         navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Splash.route) { inclusive = true }
+                            popUpTo(0) { inclusive = true }
                         }
                     },
                     onNavigateToLogin = { navController.popBackStack() }

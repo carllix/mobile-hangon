@@ -31,10 +31,6 @@ class FirebaseAuthRepository(
             firebaseUser
                 ?.updateProfile(UserProfileChangeRequest.Builder().setDisplayName(displayName).build())
                 ?.await()
-            // Force a token refresh: the ID token minted at sign-up is already cached and
-            // won't carry the "name" claim from the profile update above. Without this, the
-            // first backend call would use the stale token, and since the backend only sets
-            // display_name when it first creates the User row, it would stay NULL forever.
             firebaseUser?.getIdToken(true)?.await()
             AuthResult.Success
         } catch (e: Exception) {

@@ -6,10 +6,6 @@ import dev.turingcomplete.kotlinonetimepassword.TimeBasedOneTimePasswordGenerato
 import org.apache.commons.codec.binary.Base32
 import java.util.concurrent.TimeUnit
 
-/**
- * Must match `be-hangon/app/codeword/totp.py` exactly: base32 secret, HMAC-SHA1,
- * 60s time step, 6 digits. A mismatch here silently breaks codeword verification.
- */
 object TotpGenerator {
     private const val DIGITS = 6
     private const val PERIOD_SECONDS = 60L
