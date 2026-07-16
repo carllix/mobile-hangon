@@ -3,10 +3,10 @@ package com.example.hangon.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // HangOn Brand Colors
-val HangOnBlue = Color(0xFF1934D8)
-val HangOnBlueDark = Color(0xFF1228B0)
-val HangOnBlueLight = Color(0xFF2545F0)
-val HangOnBlueAlpha = Color(0x331934D8)
+val HangOnBlue = Color(0xFF376BFC)
+val HangOnBlueDark = Color(0xFF2C56CA)
+val HangOnBlueLight = Color(0xFF5581FC)
+val HangOnBlueAlpha = Color(0x33376BFC)
 
 val BackgroundLight = Color(0xFFF0F2F8)
 val SurfaceWhite = Color(0xFFFFFFFF)
