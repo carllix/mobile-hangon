@@ -1,40 +1,96 @@
 package com.example.hangon.data.repository
 
-import androidx.compose.ui.graphics.Color
-import com.example.hangon.data.model.FamilyGroup
-import com.example.hangon.data.model.FamilyMember
-import com.example.hangon.ui.theme.HangOnBlue
-import com.example.hangon.ui.theme.SuccessGreen
+import com.example.hangon.data.model.FamilyDetail
+import com.example.hangon.data.model.FamilySummary
+import com.example.hangon.data.remote.FamilyApi
+import com.example.hangon.data.remote.HangOnApi
+import com.example.hangon.data.remote.UserApi
+import com.example.hangon.data.remote.dto.FamilyCreateRequestDto
+import com.example.hangon.data.remote.dto.FamilyJoinRequestDto
+import com.example.hangon.data.remote.dto.toDomain
+import retrofit2.HttpException
+import java.io.IOException
 
 interface FamilyRepository {
-    fun getDummyFamily(): FamilyGroup
-    fun createFamily(name: String): FamilyGroup
-    fun joinFamily(inviteCode: String): FamilyGroup
-    fun nextCodeword(): String
+    suspend fun listMyFamilies(): ApiResult<List<FamilySummary>>
+    suspend fun createFamily(name: String): ApiResult<Unit>
+    suspend fun joinFamily(inviteCode: String): ApiResult<Unit>
+    suspend fun getFamilyDetail(familyId: String): ApiResult<FamilyDetail>
+    suspend fun getSecret(familyId: String): ApiResult<String>
+    suspend fun rotateSecret(familyId: String): ApiResult<String>
+    suspend fun leaveFamily(familyId: String): ApiResult<Unit>
+    suspend fun removeMember(familyId: String, userId: String): ApiResult<Unit>
+    suspend fun getCurrentUserId(): ApiResult<String>
 }
 
-class InMemoryFamilyRepository : FamilyRepository {
+class RetrofitFamilyRepository(
+    private val api: FamilyApi = HangOnApi.familyApi,
+    private val userApi: UserApi = HangOnApi.userApi,
+    private val authRepository: AuthRepository = FirebaseAuthRepository()
+) : FamilyRepository {
 
-    private val codewordPool = listOf(
-        "TIGER-4421", "SUNSET-8812", "RIVER-6637",
-        "CLOUD-2295", "MANGO-7734", "EAGLE-5549"
-    )
+    private suspend fun bearer(): String {
+        val token = authRepository.getIdToken()
+            ?: throw IllegalStateException("Sesi tidak valid, silakan masuk kembali.")
+        return "Bearer $token"
+    }
 
-    override fun getDummyFamily(): FamilyGroup = FamilyGroup(
-        id = "fam_001",
-        name = "Keluarga Santoso",
-        members = listOf(
-            FamilyMember("1", "Budi Santoso", "BS", "+62 812-3456-7890", HangOnBlue),
-            FamilyMember("2", "Siti Santoso", "SS", "+62 821-9876-5432", Color(0xFF7C3AED)),
-            FamilyMember("3", "Andi Santoso", "AS", "+62 856-1234-5678", SuccessGreen)
-        ),
-        codeword = "MANGO-7734",
-        secondsUntilRefresh = 42
-    )
+    private suspend fun <T> safeCall(block: suspend () -> T): ApiResult<T> {
+        return try {
+            ApiResult.Success(block())
+        } catch (e: HttpException) {
+            ApiResult.Failure(e.response()?.errorBody()?.string() ?: "Terjadi kesalahan (${e.code()})")
+        } catch (e: IOException) {
+            ApiResult.Failure("Tidak dapat terhubung ke server. Periksa koneksi Anda.")
+        } catch (e: IllegalStateException) {
+            ApiResult.Failure(e.message ?: "Sesi tidak valid, silakan masuk kembali.")
+        }
+    }
 
-    override fun createFamily(name: String): FamilyGroup = getDummyFamily().copy(name = name)
+    override suspend fun listMyFamilies(): ApiResult<List<FamilySummary>> = safeCall {
+        api.listMyFamilies(bearer()).families.map { it.toDomain() }
+    }
 
-    override fun joinFamily(inviteCode: String): FamilyGroup = getDummyFamily()
+    override suspend fun createFamily(name: String): ApiResult<Unit> = safeCall {
+        api.createFamily(bearer(), FamilyCreateRequestDto(name))
+        Unit
+    }
 
-    override fun nextCodeword(): String = codewordPool.random()
+    override suspend fun joinFamily(inviteCode: String): ApiResult<Unit> = safeCall {
+        api.joinFamily(bearer(), FamilyJoinRequestDto(inviteCode))
+        Unit
+    }
+
+    override suspend fun getFamilyDetail(familyId: String): ApiResult<FamilyDetail> = safeCall {
+        val auth = bearer()
+        val summary = api.listMyFamilies(auth).families.find { it.id == familyId }
+            ?: throw IllegalStateException("Family tidak ditemukan")
+        val members = api.getMembers(auth, familyId)
+        members.toDomain(
+            familyId = summary.id,
+            familyName = summary.name,
+            inviteCode = summary.inviteCode,
+            myRole = summary.role
+        )
+    }
+
+    override suspend fun getSecret(familyId: String): ApiResult<String> = safeCall {
+        api.getSecret(bearer(), familyId).sharedSecret
+    }
+
+    override suspend fun rotateSecret(familyId: String): ApiResult<String> = safeCall {
+        api.rotateSecret(bearer(), familyId).sharedSecret
+    }
+
+    override suspend fun leaveFamily(familyId: String): ApiResult<Unit> = safeCall {
+        api.leaveFamily(bearer(), familyId)
+    }
+
+    override suspend fun removeMember(familyId: String, userId: String): ApiResult<Unit> = safeCall {
+        api.removeMember(bearer(), familyId, userId)
+    }
+
+    override suspend fun getCurrentUserId(): ApiResult<String> = safeCall {
+        userApi.getMe(bearer()).id
+    }
 }

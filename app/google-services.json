@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1054031173104",
+    "project_id": "hangon-1a421",
+    "storage_bucket": "hangon-1a421.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1054031173104:android:caea7c0abe0245bf18f935",
+        "android_client_info": {
+          "package_name": "com.example.hangon"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBh2uQ_RRMFES2oPDS7svVFFfoVWMBOoTM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

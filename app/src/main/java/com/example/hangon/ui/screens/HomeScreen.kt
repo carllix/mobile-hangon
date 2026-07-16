@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Info
@@ -31,19 +32,25 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,11 +77,38 @@ import com.example.hangon.ui.viewmodel.HomeViewModel
 
 // --- Home Screen ---
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showLogoutConfirm by remember { mutableStateOf(false) }
 
     if (uiState.showCallSimulation) {
         CallOverlayPreviewScreen(onDismiss = { viewModel.onShowCallSimulation(false) })
+    }
+
+    if (showLogoutConfirm) {
+        AlertDialog(
+            onDismissRequest = { showLogoutConfirm = false },
+            containerColor = SurfaceWhite,
+            shape = RoundedCornerShape(24.dp),
+            title = { Text("Keluar dari Akun?", fontWeight = FontWeight.Bold, color = TextPrimary) },
+            text = { Text("Anda perlu masuk kembali untuk menggunakan HangOn.", color = TextSecondary) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showLogoutConfirm = false
+                        onLogout()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
+                ) {
+                    Text("Keluar", fontWeight = FontWeight.SemiBold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutConfirm = false }) {
+                    Text("Batal", color = TextSecondary)
+                }
+            }
+        )
     }
 
     Column(
@@ -86,6 +120,16 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
             .padding(top = 56.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            IconButton(onClick = { showLogoutConfirm = true }) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.Logout,
+                    contentDescription = "Keluar",
+                    tint = TextSecondary
+                )
+            }
+        }
+
         // Logo + App Name Header
         Icon(
             imageVector = Icons.Filled.Call,

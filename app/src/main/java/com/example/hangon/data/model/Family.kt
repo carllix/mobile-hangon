@@ -1,19 +1,24 @@
 package com.example.hangon.data.model
 
-import androidx.compose.ui.graphics.Color
-
-data class FamilyMember(
+data class FamilySummary(
     val id: String,
     val name: String,
-    val initials: String,
-    val phone: String,
-    val avatarColor: Color
+    val inviteCode: String,
+    val role: String,
+    val memberCount: Int,
+    val memberPreviewNames: List<String>
 )
 
-data class FamilyGroup(
+data class FamilyMember(
+    val userId: String,
+    val displayName: String,
+    val role: String
+)
+
+data class FamilyDetail(
     val id: String,
     val name: String,
-    val members: List<FamilyMember>,
-    val codeword: String,
-    val secondsUntilRefresh: Int
+    val inviteCode: String,
+    val myRole: String,
+    val members: List<FamilyMember>
 )

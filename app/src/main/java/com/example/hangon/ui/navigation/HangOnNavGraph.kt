@@ -36,17 +36,23 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.hangon.ui.screens.FamilyScreen
+import androidx.navigation.navArgument
+import com.example.hangon.ui.screens.FamilyDetailScreen
+import com.example.hangon.ui.screens.FamilyListScreen
 import com.example.hangon.ui.screens.HomeScreen
+import com.example.hangon.ui.screens.LoginScreen
+import com.example.hangon.ui.screens.RegisterScreen
 import com.example.hangon.ui.screens.SplashScreen
 import com.example.hangon.ui.theme.BackgroundLight
 import com.example.hangon.ui.theme.HangOnBlue
 import com.example.hangon.ui.theme.SurfaceWhite
 import com.example.hangon.ui.theme.TextSecondary
+import com.google.firebase.auth.FirebaseAuth
 
 data class NavItem(
     val route: String,
@@ -100,20 +106,68 @@ fun HangOnNavGraph() {
             composable(Screen.Splash.route) {
                 SplashScreen(
                     onSplashComplete = {
-                        // Splash → Home directly (no Permission onboarding screen)
-                        navController.navigate(Screen.Home.route) {
+                        // Skip Login if a Firebase session is already active.
+                        val destination = if (FirebaseAuth.getInstance().currentUser != null) {
+                            Screen.Home.route
+                        } else {
+                            Screen.Login.route
+                        }
+                        navController.navigate(destination) {
                             popUpTo(Screen.Splash.route) { inclusive = true }
                         }
                     }
                 )
             }
 
+            composable(Screen.Login.route) {
+                LoginScreen(
+                    onLoginSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = { navController.navigate(Screen.Register.route) }
+                )
+            }
+
+            composable(Screen.Register.route) {
+                RegisterScreen(
+                    onRegisterSuccess = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
+                    },
+                    onNavigateToLogin = { navController.popBackStack() }
+                )
+            }
+
             composable(Screen.Home.route) {
-                HomeScreen()
+                HomeScreen(
+                    onLogout = {
+                        FirebaseAuth.getInstance().signOut()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
             }
 
             composable(Screen.Family.route) {
-                FamilyScreen()
+                FamilyListScreen(
+                    onFamilyClick = { familyId ->
+                        navController.navigate(Screen.FamilyDetail.buildRoute(familyId))
+                    }
+                )
+            }
+
+            composable(
+                Screen.FamilyDetail.route,
+                arguments = listOf(navArgument("familyId") { type = NavType.StringType })
+            ) { entry ->
+                FamilyDetailScreen(
+                    familyId = entry.arguments?.getString("familyId").orEmpty(),
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }
