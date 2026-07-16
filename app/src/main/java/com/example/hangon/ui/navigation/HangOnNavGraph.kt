@@ -1,7 +1,5 @@
 package com.example.hangon.ui.navigation
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -12,7 +10,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -31,11 +28,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,7 +45,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.hangon.ui.screens.FamilyScreen
 import com.example.hangon.ui.screens.HomeScreen
-import com.example.hangon.ui.screens.PermissionSetupScreen
+import com.example.hangon.ui.screens.PermissionState
 import com.example.hangon.ui.screens.SplashScreen
 import com.example.hangon.ui.theme.BackgroundLight
 import com.example.hangon.ui.theme.HangOnBlue
@@ -64,6 +63,16 @@ data class NavItem(
 fun HangOnNavGraph() {
     val navController = rememberNavController()
 
+    // --- Hoisted state: persists across Home <-> Family navigation ---
+    var appActivated by remember { mutableStateOf(true) }
+    val permissions = remember {
+        mutableStateListOf(
+            PermissionState("contacts", "Contact Access", "Mencocokkan nomor masuk dengan kontak Anda.", false, true),
+            PermissionState("audio", "Call Audio Access", "Diperlukan untuk merekam audio selama panggilan.", true, true),
+            PermissionState("overlay", "Display Over Other Apps", "Diperlukan untuk menampilkan overlay peringatan.", true, false)
+        )
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route,
@@ -77,18 +86,9 @@ fun HangOnNavGraph() {
         composable(Screen.Splash.route) {
             SplashScreen(
                 onSplashComplete = {
-                    navController.navigate(Screen.PermissionSetup.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(Screen.PermissionSetup.route) {
-            PermissionSetupScreen(
-                onSetupComplete = {
+                    // Splash → Home directly (no Permission onboarding screen)
                     navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.PermissionSetup.route) { inclusive = true }
+                        popUpTo(Screen.Splash.route) { inclusive = true }
                     }
                 }
             )
@@ -96,7 +96,14 @@ fun HangOnNavGraph() {
 
         composable(Screen.Home.route) {
             MainScaffold(navController = navController, currentRoute = Screen.Home.route) {
-                HomeScreen()
+                HomeScreen(
+                    appActivated = appActivated,
+                    onAppActivatedChange = { appActivated = it },
+                    permissions = permissions,
+                    onPermissionToggle = { index, value ->
+                        permissions[index] = permissions[index].copy(isGranted = value)
+                    }
+                )
             }
         }
 
@@ -198,7 +205,6 @@ fun BottomNavTab(
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Pill indicator above icon when selected
         if (selected) {
             Box(
                 modifier = Modifier
@@ -207,10 +213,11 @@ fun BottomNavTab(
                     .clip(RoundedCornerShape(2.dp))
                     .background(HangOnBlue)
             )
-            Spacer(modifier = Modifier.height(4.dp))
         } else {
-            Spacer(modifier = Modifier.height(7.dp))
+            Box(modifier = Modifier.height(3.dp))
         }
+
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(4.dp))
 
         Icon(
             imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
@@ -219,7 +226,7 @@ fun BottomNavTab(
             modifier = Modifier.size(24.dp)
         )
 
-        Spacer(modifier = Modifier.height(3.dp))
+        androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(3.dp))
 
         Text(
             text = item.label,

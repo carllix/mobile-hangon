@@ -1,66 +1,94 @@
 package com.example.hangon.ui.screens
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Contacts
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PauseCircle
+import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.hangon.ui.theme.*
+import com.example.hangon.ui.theme.BackgroundLight
+import com.example.hangon.ui.theme.DangerRed
+import com.example.hangon.ui.theme.DividerColor
+import com.example.hangon.ui.theme.HangOnBlue
+import com.example.hangon.ui.theme.HangOnBlueDark
+import com.example.hangon.ui.theme.SuccessGreen
+import com.example.hangon.ui.theme.SurfaceWhite
+import com.example.hangon.ui.theme.TextPrimary
+import com.example.hangon.ui.theme.TextSecondary
+import com.example.hangon.ui.theme.WarningOrange
 
-data class PermissionStatus(
-    val icon: ImageVector,
+// --- Data model (hoisted from NavGraph) ---
+data class PermissionState(
+    val id: String,
     val title: String,
     val description: String,
     val isRequired: Boolean,
     val isGranted: Boolean
 )
 
+// --- Home Screen ---
 @Composable
-fun HomeScreen() {
-    var appActivated by remember { mutableStateOf(true) }
+fun HomeScreen(
+    appActivated: Boolean,
+    onAppActivatedChange: (Boolean) -> Unit,
+    permissions: List<PermissionState>,
+    onPermissionToggle: (index: Int, value: Boolean) -> Unit
+) {
+    // Local state for showing the call overlay test dialog
+    var showCallSimulation by remember { mutableStateOf(false) }
 
-    val permissions = remember {
-        mutableStateListOf(
-            PermissionStatus(
-                icon = Icons.Filled.Contacts,
-                title = "Contact Access",
-                description = "Mencocokkan nomor masuk dengan kontak Anda untuk deteksi lebih akurat.",
-                isRequired = false,
-                isGranted = true
-            ),
-            PermissionStatus(
-                icon = Icons.Filled.Mic,
-                title = "Call Audio Access",
-                description = "Diperlukan untuk merekam dan menganalisis audio selama panggilan berlangsung.",
-                isRequired = true,
-                isGranted = true
-            ),
-            PermissionStatus(
-                icon = Icons.Filled.Layers,
-                title = "Display Over Other Apps",
-                description = "Diperlukan untuk menampilkan overlay peringatan saat ada panggilan masuk.",
-                isRequired = true,
-                isGranted = false
-            )
-        )
+    if (showCallSimulation) {
+        CallOverlayPreviewScreen(onDismiss = { showCallSimulation = false })
     }
 
     Column(
@@ -92,7 +120,7 @@ fun HomeScreen() {
         Spacer(modifier = Modifier.height(28.dp))
 
         // Activate App Card
-        ActivateAppCard(isActivated = appActivated, onToggle = { appActivated = it })
+        ActivateAppCard(isActivated = appActivated, onToggle = onAppActivatedChange)
 
         Spacer(modifier = Modifier.height(28.dp))
 
@@ -107,7 +135,7 @@ fun HomeScreen() {
                 .padding(bottom = 12.dp)
         )
 
-        // Permission cards in a card container (like reference)
+        // Permission cards in a grouped card (matching reference design)
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
@@ -116,12 +144,16 @@ fun HomeScreen() {
         ) {
             permissions.forEachIndexed { index, perm ->
                 HomePermissionRow(
-                    icon = perm.icon,
+                    icon = when (perm.id) {
+                        "contacts" -> Icons.Filled.Contacts
+                        "audio" -> Icons.Filled.Mic
+                        else -> Icons.Filled.Layers
+                    },
                     title = perm.title,
                     description = perm.description,
                     isRequired = perm.isRequired,
                     isGranted = perm.isGranted,
-                    onToggle = { permissions[index] = perm.copy(isGranted = it) }
+                    onToggle = { onPermissionToggle(index, it) }
                 )
                 if (index < permissions.lastIndex) {
                     HorizontalDivider(
@@ -137,9 +169,15 @@ fun HomeScreen() {
 
         // Status summary banner
         StatusBanner(appActivated = appActivated, permissions = permissions)
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // ── Simulate incoming call button (for testing overlay without backend) ──
+        SimulateCallButton(onClick = { showCallSimulation = true })
     }
 }
 
+// --- Activate App Card ---
 @Composable
 fun ActivateAppCard(isActivated: Boolean, onToggle: (Boolean) -> Unit) {
     val gradientColors = if (isActivated) {
@@ -149,8 +187,7 @@ fun ActivateAppCard(isActivated: Boolean, onToggle: (Boolean) -> Unit) {
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isActivated) 6.dp else 2.dp)
     ) {
@@ -166,7 +203,6 @@ fun ActivateAppCard(isActivated: Boolean, onToggle: (Boolean) -> Unit) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Pulsing green dot when active
                         if (isActivated) {
                             PulsingDot()
                             Spacer(modifier = Modifier.width(8.dp))
@@ -225,6 +261,7 @@ fun PulsingDot() {
     )
 }
 
+// --- Permission Row ---
 @Composable
 fun HomePermissionRow(
     icon: ImageVector,
@@ -240,7 +277,6 @@ fun HomePermissionRow(
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icon
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -306,32 +342,35 @@ fun HomePermissionRow(
     }
 }
 
+// --- Status Banner ---
 @Composable
-fun StatusBanner(
-    appActivated: Boolean,
-    permissions: List<PermissionStatus>
-) {
+fun StatusBanner(appActivated: Boolean, permissions: List<PermissionState>) {
     val missingRequired = permissions.filter { it.isRequired && !it.isGranted }
 
-    val (bgColor, textColor, icon, message) = when {
-        !appActivated -> Quadruple(
-            TextSecondary.copy(alpha = 0.1f),
-            TextSecondary,
-            Icons.Filled.PauseCircle,
-            "HangOn tidak aktif. Aktifkan untuk mulai melindungi Anda."
-        )
-        missingRequired.isNotEmpty() -> Quadruple(
-            DangerRed.copy(alpha = 0.08f),
-            DangerRed,
-            Icons.Filled.Warning,
-            "Izin wajib belum diberikan: ${missingRequired.joinToString(", ") { it.title }}"
-        )
-        else -> Quadruple(
-            SuccessGreen.copy(alpha = 0.08f),
-            SuccessGreen,
-            Icons.Filled.VerifiedUser,
-            "HangOn aktif dan siap melindungi panggilan Anda."
-        )
+    val bgColor: Color
+    val textColor: Color
+    val icon: ImageVector
+    val message: String
+
+    when {
+        !appActivated -> {
+            bgColor = TextSecondary.copy(alpha = 0.1f)
+            textColor = TextSecondary
+            icon = Icons.Filled.PauseCircle
+            message = "HangOn tidak aktif. Aktifkan untuk mulai melindungi Anda."
+        }
+        missingRequired.isNotEmpty() -> {
+            bgColor = DangerRed.copy(alpha = 0.08f)
+            textColor = DangerRed
+            icon = Icons.Filled.Warning
+            message = "Izin wajib belum diberikan: ${missingRequired.joinToString(", ") { it.title }}"
+        }
+        else -> {
+            bgColor = SuccessGreen.copy(alpha = 0.08f)
+            textColor = SuccessGreen
+            icon = Icons.Filled.VerifiedUser
+            message = "HangOn aktif dan siap melindungi panggilan Anda."
+        }
     }
 
     Surface(
@@ -360,5 +399,58 @@ fun StatusBanner(
     }
 }
 
-// Utility data class for destructuring
-data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+// --- Simulate Incoming Call Button ---
+@Composable
+fun SimulateCallButton(onClick: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = HangOnBlue.copy(alpha = 0.06f)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.Info,
+                    contentDescription = null,
+                    tint = HangOnBlue,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Mode Pengembangan",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = HangOnBlue,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Tekan tombol di bawah untuk melihat tampilan popup saat ada panggilan masuk dari nomor tidak dikenal.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary,
+                lineHeight = 16.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = onClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
+            ) {
+                Icon(
+                    Icons.Filled.Call,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Simulasi Panggilan Masuk",
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
