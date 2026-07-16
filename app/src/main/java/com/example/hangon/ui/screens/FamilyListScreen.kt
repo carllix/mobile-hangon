@@ -325,25 +325,39 @@ fun JoinFamilyDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onJoin(inviteCode) },
-                enabled = inviteCode.isNotBlank() && !isSubmitting,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (isSubmitting) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                } else {
-                    Text("Join", fontWeight = FontWeight.SemiBold)
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.5.dp, HangOnBlue.copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = HangOnBlue)
+                ) {
+                    Text("Cancel", fontWeight = FontWeight.SemiBold)
+                }
+                Button(
+                    onClick = { onJoin(inviteCode) },
+                    enabled = inviteCode.isNotBlank() && !isSubmitting,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
+                ) {
+                    if (isSubmitting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Join", fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
-            }
-        }
+        dismissButton = null
     )
 }
 
@@ -389,24 +403,38 @@ fun CreateFamilyDialog(
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onCreate(familyName) },
-                enabled = familyName.isNotBlank() && !isSubmitting,
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (isSubmitting) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                } else {
-                    Text("Add", fontWeight = FontWeight.SemiBold)
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.5.dp, HangOnBlue.copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = HangOnBlue)
+                ) {
+                    Text("Cancel", fontWeight = FontWeight.SemiBold)
+                }
+                Button(
+                    onClick = { onCreate(familyName) },
+                    enabled = familyName.isNotBlank() && !isSubmitting,
+                    modifier = Modifier.weight(1f).height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
+                ) {
+                    if (isSubmitting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Add", fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel", color = TextSecondary)
-            }
-        }
+        dismissButton = null
     )
 }

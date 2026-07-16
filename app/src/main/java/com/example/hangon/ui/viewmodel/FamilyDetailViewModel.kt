@@ -7,6 +7,7 @@ import com.example.hangon.data.repository.ApiResult
 import com.example.hangon.data.repository.FamilyRepository
 import com.example.hangon.data.repository.RetrofitFamilyRepository
 import com.example.hangon.data.util.TotpGenerator
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -105,11 +106,15 @@ class FamilyDetailViewModel(
             while (true) {
                 val currentSecret = secret ?: break
                 val now = System.currentTimeMillis() / 1000
-                _uiState.update {
-                    it.copy(
-                        currentCodeword = TotpGenerator.currentCode(currentSecret, now),
-                        secondsLeft = TotpGenerator.secondsRemainingInWindow(now)
-                    )
+                try {
+                    val code = TotpGenerator.currentCode(currentSecret, now)
+                    val remaining = TotpGenerator.secondsRemainingInWindow(now)
+                    _uiState.update { it.copy(currentCodeword = code, secondsLeft = remaining) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(errorMessage = "Gagal menghasilkan codeword.") }
+                    break
                 }
                 delay(1000)
             }

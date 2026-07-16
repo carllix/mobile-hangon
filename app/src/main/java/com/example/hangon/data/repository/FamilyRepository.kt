@@ -8,6 +8,7 @@ import com.example.hangon.data.remote.UserApi
 import com.example.hangon.data.remote.dto.FamilyCreateRequestDto
 import com.example.hangon.data.remote.dto.FamilyJoinRequestDto
 import com.example.hangon.data.remote.dto.toDomain
+import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -38,12 +39,14 @@ class RetrofitFamilyRepository(
     private suspend fun <T> safeCall(block: suspend () -> T): ApiResult<T> {
         return try {
             ApiResult.Success(block())
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: HttpException) {
             ApiResult.Failure(e.response()?.errorBody()?.string() ?: "Terjadi kesalahan (${e.code()})")
         } catch (e: IOException) {
             ApiResult.Failure("Tidak dapat terhubung ke server. Periksa koneksi Anda.")
-        } catch (e: IllegalStateException) {
-            ApiResult.Failure(e.message ?: "Sesi tidak valid, silakan masuk kembali.")
+        } catch (e: Exception) {
+            ApiResult.Failure(e.message ?: "Terjadi kesalahan tak terduga.")
         }
     }
 
