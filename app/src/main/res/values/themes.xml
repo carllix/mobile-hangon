@@ -2,4 +2,20 @@
 <resources>
 
     <style name="Theme.HangOn" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash screen theme using androidx.core:core-splashscreen -->
+    <style name="Theme.HangOn.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#1934D8</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_hangon_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.HangOn</item>
+    </style>
+
+    <!-- Transparent theme for overlay activity -->
+    <style name="Theme.Transparent" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+
 </resources>
