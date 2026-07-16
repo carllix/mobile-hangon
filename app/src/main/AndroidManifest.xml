@@ -27,6 +27,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:resizeableActivity="false"
             android:theme="@style/Theme.HangOn.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

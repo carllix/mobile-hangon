@@ -26,72 +26,46 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hangon.data.model.FamilyGroup
+import com.example.hangon.data.model.FamilyMember
 import com.example.hangon.ui.theme.*
-import kotlinx.coroutines.delay
-
-// --- Data Models ---
-
-data class FamilyMember(
-    val id: String,
-    val name: String,
-    val initials: String,
-    val phone: String,
-    val avatarColor: Color
-)
-
-data class FamilyGroup(
-    val id: String,
-    val name: String,
-    val members: List<FamilyMember>,
-    val codeword: String,
-    val secondsUntilRefresh: Int
-)
+import com.example.hangon.ui.viewmodel.FamilyViewModel
 
 // --- Family Screen ---
 
 @Composable
-fun FamilyScreen() {
-    // Dummy state: no family yet or has family
-    var hasFamilyGroup by remember { mutableStateOf(false) }
-    var showJoinDialog by remember { mutableStateOf(false) }
-    var showCreateDialog by remember { mutableStateOf(false) }
-
-    val dummyFamily = FamilyGroup(
-        id = "fam_001",
-        name = "Keluarga Santoso",
-        members = listOf(
-            FamilyMember("1", "Budi Santoso", "BS", "+62 812-3456-7890", HangOnBlue),
-            FamilyMember("2", "Siti Santoso", "SS", "+62 821-9876-5432", Color(0xFF7C3AED)),
-            FamilyMember("3", "Andi Santoso", "AS", "+62 856-1234-5678", SuccessGreen),
-        ),
-        codeword = "MANGO-7734",
-        secondsUntilRefresh = 42
-    )
+fun FamilyScreen(viewModel: FamilyViewModel = viewModel()) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Box(modifier = Modifier.fillMaxSize().background(BackgroundLight)) {
-        if (hasFamilyGroup) {
+        val family = uiState.family
+        if (uiState.hasFamilyGroup && family != null) {
             FamilyGroupView(
-                family = dummyFamily,
-                onLeave = { hasFamilyGroup = false }
+                family = family,
+                secondsLeft = uiState.secondsLeft,
+                currentCodeword = uiState.currentCodeword,
+                onLeave = viewModel::onLeaveFamily
             )
         } else {
             NoFamilyView(
-                onCreateFamily = { showCreateDialog = true },
-                onJoinFamily = { showJoinDialog = true }
+                onCreateFamily = { viewModel.onShowCreateDialog(true) },
+                onJoinFamily = { viewModel.onShowJoinDialog(true) }
             )
         }
 
         // Dialogs
-        if (showJoinDialog) {
+        if (uiState.showJoinDialog) {
             JoinFamilyDialog(
-                onDismiss = { showJoinDialog = false },
-                onJoin = { showJoinDialog = false; hasFamilyGroup = true }
+                onDismiss = { viewModel.onShowJoinDialog(false) },
+                onJoin = viewModel::onJoinFamily
             )
         }
-        if (showCreateDialog) {
+        if (uiState.showCreateDialog) {
             CreateFamilyDialog(
-                onDismiss = { showCreateDialog = false },
-                onCreate = { showCreateDialog = false; hasFamilyGroup = true }
+                onDismiss = { viewModel.onShowCreateDialog(false) },
+                onCreate = viewModel::onCreateFamily
             )
         }
     }
@@ -180,26 +154,12 @@ fun NoFamilyView(onCreateFamily: () -> Unit, onJoinFamily: () -> Unit) {
 // --- Family Group View ---
 
 @Composable
-fun FamilyGroupView(family: FamilyGroup, onLeave: () -> Unit) {
-    // Countdown timer for codeword regeneration
-    var secondsLeft by remember { mutableStateOf(family.secondsUntilRefresh) }
-    var currentCodeword by remember { mutableStateOf(family.codeword) }
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(1000)
-            secondsLeft = (secondsLeft - 1).coerceAtLeast(0)
-            if (secondsLeft == 0) {
-                secondsLeft = 60
-                // Rotate to a new codeword (simulated)
-                currentCodeword = listOf(
-                    "TIGER-4421", "SUNSET-8812", "RIVER-6637",
-                    "CLOUD-2295", "MANGO-7734", "EAGLE-5549"
-                ).random()
-            }
-        }
-    }
-
+fun FamilyGroupView(
+    family: FamilyGroup,
+    secondsLeft: Int,
+    currentCodeword: String,
+    onLeave: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -473,7 +433,7 @@ fun MemberRow(member: FamilyMember) {
 // --- Dialogs ---
 
 @Composable
-fun JoinFamilyDialog(onDismiss: () -> Unit, onJoin: () -> Unit) {
+fun JoinFamilyDialog(onDismiss: () -> Unit, onJoin: (String) -> Unit) {
     var inviteCode by remember { mutableStateOf("") }
 
     AlertDialog(
@@ -510,7 +470,7 @@ fun JoinFamilyDialog(onDismiss: () -> Unit, onJoin: () -> Unit) {
         },
         confirmButton = {
             Button(
-                onClick = onJoin,
+                onClick = { onJoin(inviteCode) },
                 enabled = inviteCode.isNotBlank(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
@@ -527,7 +487,7 @@ fun JoinFamilyDialog(onDismiss: () -> Unit, onJoin: () -> Unit) {
 }
 
 @Composable
-fun CreateFamilyDialog(onDismiss: () -> Unit, onCreate: () -> Unit) {
+fun CreateFamilyDialog(onDismiss: () -> Unit, onCreate: (String) -> Unit) {
     var familyName by remember { mutableStateOf("") }
 
     AlertDialog(
@@ -564,7 +524,7 @@ fun CreateFamilyDialog(onDismiss: () -> Unit, onCreate: () -> Unit) {
         },
         confirmButton = {
             Button(
-                onClick = onCreate,
+                onClick = { onCreate(familyName) },
                 enabled = familyName.isNotBlank(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)

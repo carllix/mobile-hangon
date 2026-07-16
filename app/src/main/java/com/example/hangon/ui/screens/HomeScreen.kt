@@ -44,9 +44,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,6 +53,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hangon.data.model.Permission
 import com.example.hangon.ui.theme.BackgroundLight
 import com.example.hangon.ui.theme.DangerRed
 import com.example.hangon.ui.theme.DividerColor
@@ -66,29 +66,15 @@ import com.example.hangon.ui.theme.SurfaceWhite
 import com.example.hangon.ui.theme.TextPrimary
 import com.example.hangon.ui.theme.TextSecondary
 import com.example.hangon.ui.theme.WarningOrange
-
-// --- Data model (hoisted from NavGraph) ---
-data class PermissionState(
-    val id: String,
-    val title: String,
-    val description: String,
-    val isRequired: Boolean,
-    val isGranted: Boolean
-)
+import com.example.hangon.ui.viewmodel.HomeViewModel
 
 // --- Home Screen ---
 @Composable
-fun HomeScreen(
-    appActivated: Boolean,
-    onAppActivatedChange: (Boolean) -> Unit,
-    permissions: List<PermissionState>,
-    onPermissionToggle: (index: Int, value: Boolean) -> Unit
-) {
-    // Local state for showing the call overlay test dialog
-    var showCallSimulation by remember { mutableStateOf(false) }
+fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if (showCallSimulation) {
-        CallOverlayPreviewScreen(onDismiss = { showCallSimulation = false })
+    if (uiState.showCallSimulation) {
+        CallOverlayPreviewScreen(onDismiss = { viewModel.onShowCallSimulation(false) })
     }
 
     Column(
@@ -120,7 +106,7 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(28.dp))
 
         // Activate App Card
-        ActivateAppCard(isActivated = appActivated, onToggle = onAppActivatedChange)
+        ActivateAppCard(isActivated = uiState.appActivated, onToggle = viewModel::onAppActivatedChange)
 
         Spacer(modifier = Modifier.height(28.dp))
 
@@ -142,7 +128,7 @@ fun HomeScreen(
             colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            permissions.forEachIndexed { index, perm ->
+            uiState.permissions.forEachIndexed { index, perm ->
                 HomePermissionRow(
                     icon = when (perm.id) {
                         "contacts" -> Icons.Filled.Contacts
@@ -153,9 +139,9 @@ fun HomeScreen(
                     description = perm.description,
                     isRequired = perm.isRequired,
                     isGranted = perm.isGranted,
-                    onToggle = { onPermissionToggle(index, it) }
+                    onToggle = { viewModel.onPermissionToggle(index, it) }
                 )
-                if (index < permissions.lastIndex) {
+                if (index < uiState.permissions.lastIndex) {
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         thickness = 1.dp,
@@ -168,12 +154,12 @@ fun HomeScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Status summary banner
-        StatusBanner(appActivated = appActivated, permissions = permissions)
+        StatusBanner(appActivated = uiState.appActivated, permissions = uiState.permissions)
 
         Spacer(modifier = Modifier.height(20.dp))
 
         // ── Simulate incoming call button (for testing overlay without backend) ──
-        SimulateCallButton(onClick = { showCallSimulation = true })
+        SimulateCallButton(onClick = { viewModel.onShowCallSimulation(true) })
     }
 }
 
@@ -344,7 +330,7 @@ fun HomePermissionRow(
 
 // --- Status Banner ---
 @Composable
-fun StatusBanner(appActivated: Boolean, permissions: List<PermissionState>) {
+fun StatusBanner(appActivated: Boolean, permissions: List<Permission>) {
     val missingRequired = permissions.filter { it.isRequired && !it.isGranted }
 
     val bgColor: Color

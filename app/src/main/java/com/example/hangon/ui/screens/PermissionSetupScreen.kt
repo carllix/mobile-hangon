@@ -24,48 +24,28 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hangon.data.model.Permission
 import com.example.hangon.ui.theme.*
+import com.example.hangon.ui.viewmodel.PermissionSetupViewModel
 
-data class PermissionItem(
-    val icon: ImageVector,
-    val title: String,
-    val description: String,
-    val isRequired: Boolean,
-    var isGranted: Boolean = false
-)
+private fun permissionIcon(id: String): ImageVector = when (id) {
+    "call_screening" -> Icons.Filled.Call
+    "audio" -> Icons.Filled.Mic
+    "overlay" -> Icons.Filled.Layers
+    "contacts" -> Icons.Filled.Contacts
+    else -> Icons.Filled.Layers
+}
 
 @Composable
-fun PermissionSetupScreen(onSetupComplete: () -> Unit) {
-    val permissions = remember {
-        mutableStateListOf(
-            PermissionItem(
-                icon = Icons.Filled.Call,
-                title = "Call Screening",
-                description = "Diperlukan untuk mendeteksi panggilan masuk dan nomor yang tidak dikenal.",
-                isRequired = true
-            ),
-            PermissionItem(
-                icon = Icons.Filled.Mic,
-                title = "Akses Audio Panggilan",
-                description = "Diperlukan untuk mendengarkan dan menganalisis audio selama panggilan berlangsung.",
-                isRequired = true
-            ),
-            PermissionItem(
-                icon = Icons.Filled.Layers,
-                title = "Tampil di Atas App Lain",
-                description = "Diperlukan untuk menampilkan overlay peringatan selama panggilan berjalan.",
-                isRequired = true
-            ),
-            PermissionItem(
-                icon = Icons.Filled.Contacts,
-                title = "Akses Kontak",
-                description = "Opsional. Digunakan untuk mencocokkan nomor masuk dengan daftar kontak Anda.",
-                isRequired = false
-            )
-        )
-    }
-
-    val allRequiredGranted = permissions.filter { it.isRequired }.all { it.isGranted }
+fun PermissionSetupScreen(
+    onSetupComplete: () -> Unit,
+    viewModel: PermissionSetupViewModel = viewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val permissions = uiState.permissions
+    val allRequiredGranted = uiState.allRequiredGranted
 
     Box(
         modifier = Modifier
@@ -121,7 +101,7 @@ fun PermissionSetupScreen(onSetupComplete: () -> Unit) {
             permissions.forEachIndexed { index, permission ->
                 PermissionCard(
                     permission = permission,
-                    onGranted = { permissions[index] = permission.copy(isGranted = !permission.isGranted) }
+                    onGranted = { viewModel.onPermissionToggle(index) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -172,7 +152,7 @@ fun PermissionSetupScreen(onSetupComplete: () -> Unit) {
 
 @Composable
 fun PermissionCard(
-    permission: PermissionItem,
+    permission: Permission,
     onGranted: () -> Unit
 ) {
     val borderColor = if (permission.isGranted) HangOnBlue.copy(alpha = 0.5f) else DividerColor
@@ -204,7 +184,7 @@ fun PermissionCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = permission.icon,
+                    imageVector = permissionIcon(permission.id),
                     contentDescription = null,
                     tint = if (permission.isGranted) Color.White else HangOnBlue,
                     modifier = Modifier.size(22.dp)
