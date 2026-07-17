@@ -1,8 +1,12 @@
 package com.example.hangon.ui.screens
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.example.hangon.R
+import com.example.hangon.data.util.PermissionRequests
 import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -27,9 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Contacts
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PauseCircle
@@ -83,10 +85,12 @@ import com.example.hangon.ui.viewmodel.HomeViewModel
 fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showLogoutConfirm by remember { mutableStateOf(false) }
-
-    if (uiState.showCallSimulation) {
-        CallOverlayPreviewScreen(onDismiss = { viewModel.onShowCallSimulation(false) })
-    }
+    val permissionHandler = rememberPermissionRowHandler()
+    val context = LocalContext.current
+    val callScreeningLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { viewModel.refresh() }
+    RefreshPermissionsOnResume(onResume = viewModel::refresh)
 
     if (showLogoutConfirm) {
         AlertDialog(
@@ -146,7 +150,17 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
         Spacer(modifier = Modifier.height(36.dp))
 
         // Activate App Card
-        ActivateAppCard(isActivated = uiState.appActivated, onToggle = viewModel::onAppActivatedChange)
+        ActivateAppCard(
+            isActivated = uiState.appActivated,
+            onToggle = { activated ->
+                if (activated && !viewModel.isCallScreeningGranted()) {
+                    PermissionRequests.specialPermissionIntentFor(context, "call_screening")
+                        ?.let { callScreeningLauncher.launch(it) }
+                } else {
+                    viewModel.setLocalActivation(activated)
+                }
+            }
+        )
 
         Spacer(modifier = Modifier.height(28.dp))
 
@@ -179,7 +193,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
                     description = perm.description,
                     isRequired = perm.isRequired,
                     isGranted = perm.isGranted,
-                    onToggle = { viewModel.onPermissionToggle(index, it) }
+                    onToggle = { permissionHandler(perm) }
                 )
                 if (index < uiState.permissions.lastIndex) {
                     HorizontalDivider(
@@ -195,11 +209,6 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
 
         // Status summary banner
         //StatusBanner(appActivated = uiState.appActivated, permissions = uiState.permissions)
-
-        //Spacer(modifier = Modifier.height(10.dp))
-
-        // ── Simulate incoming call button (for testing overlay without backend) ──
-        SimulateCallButton(onClick = { viewModel.onShowCallSimulation(true) })
     }
 }
 
@@ -397,58 +406,3 @@ fun StatusBanner(appActivated: Boolean, permissions: List<Permission>) {
     }
 }
 
-// --- Simulate Incoming Call Button ---
-@Composable
-fun SimulateCallButton(onClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = HangOnBlue.copy(alpha = 0.06f)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Filled.Info,
-                    contentDescription = null,
-                    tint = HangOnBlue,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Mode Pengembangan",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = HangOnBlue,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Tekan tombol di bawah untuk melihat tampilan popup saat ada panggilan masuk dari nomor tidak dikenal.",
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
-                lineHeight = 16.sp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Button(
-                onClick = onClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
-            ) {
-                Icon(
-                    Icons.Filled.Call,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Simulasi Panggilan Masuk",
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-    }
-}

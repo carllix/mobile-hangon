@@ -131,6 +131,8 @@ fun HangOnNavGraph(startDestination: String) {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0) { inclusive = true }
                         }
+                        navController.clearBackStack(Screen.Home.route)
+                        navController.clearBackStack(Screen.Family.route)
                     }
                 )
             }

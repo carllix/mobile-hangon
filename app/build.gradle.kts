@@ -23,7 +23,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val hangOnBaseUrl = (project.findProperty("HANGON_BASE_URL") as String?)
-            ?: "http://10.0.2.2:8000/"
+            ?: "https://be-hang-on-production.up.railway.app"
         buildConfigField("String", "BASE_URL", "\"$hangOnBaseUrl\"")
     }
 

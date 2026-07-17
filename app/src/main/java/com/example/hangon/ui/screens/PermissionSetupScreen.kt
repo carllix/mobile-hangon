@@ -46,6 +46,8 @@ fun PermissionSetupScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val permissions = uiState.permissions
     val allRequiredGranted = uiState.allRequiredGranted
+    val permissionHandler = rememberPermissionRowHandler()
+    RefreshPermissionsOnResume(onResume = viewModel::refresh)
 
     Box(
         modifier = Modifier
@@ -98,10 +100,10 @@ fun PermissionSetupScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // Permission cards
-            permissions.forEachIndexed { index, permission ->
+            permissions.forEach { permission ->
                 PermissionCard(
                     permission = permission,
-                    onGranted = { viewModel.onPermissionToggle(index) }
+                    onGranted = { permissionHandler(permission) }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }

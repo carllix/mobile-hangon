@@ -10,11 +10,13 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- Optional permission -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
     <application
+        android:name=".HangOnApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -44,6 +46,22 @@
             android:showWhenLocked="true"
             android:turnScreenOn="true"
             android:launchMode="singleTask" />
+
+        <!-- Detects incoming calls; launches CallOverlayActivity for unrecognized numbers -->
+        <service
+            android:name=".service.HangOnCallScreeningService"
+            android:exported="true"
+            android:permission="android.permission.BIND_SCREENING_SERVICE">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
+        </service>
+
+        <!-- Foreground service streaming call audio to the backend over WebSocket -->
+        <service
+            android:name=".service.CallMonitoringService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
 
     </application>
 

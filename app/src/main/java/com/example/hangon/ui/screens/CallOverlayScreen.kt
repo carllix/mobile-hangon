@@ -1,14 +1,8 @@
 package com.example.hangon.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.EaseInOutSine
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.BorderStroke
@@ -23,22 +17,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CallEnd
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Dialpad
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.GppBad
+import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Shield
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.VerifiedUser
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -67,10 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.hangon.ui.theme.DangerRed
 import com.example.hangon.ui.theme.HangOnBlue
 import com.example.hangon.ui.theme.HangOnBlueDark
@@ -80,7 +68,6 @@ import com.example.hangon.ui.theme.TextPrimary
 import com.example.hangon.ui.theme.TextSecondary
 import com.example.hangon.ui.viewmodel.CallOverlayUiState
 import com.example.hangon.ui.viewmodel.CallOverlayViewModel
-import com.example.hangon.ui.viewmodel.CallOverlayViewModelFactory
 import com.example.hangon.ui.viewmodel.CallStage
 
 private val CallBackgroundColor = Color(0xFF1A2340)
@@ -98,25 +85,26 @@ fun CallOverlayScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(CallBackgroundColor.copy(alpha = 0.95f))
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         if (uiState.stage == CallStage.RINGING_CONSENT) {
-            IncomingCallBackground(callerNumber = uiState.callerNumber)
             CallConfirmationCard(
                 onYes = viewModel::onAcceptWithHangOn,
                 onNo = viewModel::onSkip
             )
         } else {
-            InCallBackground(elapsedSeconds = uiState.callElapsedSeconds, onDecline = viewModel::onDeclineDuringCall)
+            MonitoringStatusChip(
+                elapsedSeconds = uiState.callElapsedSeconds,
+                onStop = viewModel::onDeclineDuringCall
+            )
 
             when (uiState.stage) {
                 CallStage.SUSPICIOUS_FLAGGED -> SuspiciousActivityCard(
                     uiState = uiState,
                     onContinue = viewModel::onContinueAfterSuspicious,
                     onEndCall = viewModel::onEndCallFromSuspicious
+                )
+                CallStage.AWAITING_VOICE_CHECK -> VoiceCheckCard(
+                    onResponse = viewModel::onVoiceCheckResponse
                 )
                 CallStage.CODEWORD_PROMPT -> CodewordPromptCard(
                     onRequestInput = viewModel::onRequestCodewordInput
@@ -127,198 +115,62 @@ fun CallOverlayScreen(
                     onVerify = viewModel::onVerifyCodeword
                 )
                 CallStage.CODEWORD_VERIFIED -> CodewordVerifiedCard()
+                CallStage.AWAITING_RISK_DECISION -> HighRiskWarningCard(
+                    onEndCall = viewModel::onEndCallFromRiskDecision,
+                    onContinueAtOwnRisk = viewModel::onContinueAtOwnRisk
+                )
+                CallStage.SESSION_SUMMARY -> SessionSummaryCard(verificationStatus = uiState.verificationStatus)
                 else -> Unit
             }
-        }
-    }
-}
 
-@Composable
-fun IncomingCallBackground(callerNumber: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(modifier = Modifier.height(80.dp))
-
-        Text(
-            text = callerNumber,
-            style = MaterialTheme.typography.displayLarge,
-            color = Color.White,
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.Center,
-            fontSize = 34.sp
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.12f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Person,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.5f),
-                modifier = Modifier.size(54.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-        Spacer(modifier = Modifier.height(360.dp))
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 60.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                ChevronIndicator()
-                Spacer(modifier = Modifier.height(6.dp))
-                Box(
-                    modifier = Modifier.size(68.dp).clip(CircleShape).background(SuccessGreen),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Filled.Call, contentDescription = "Accept", tint = Color.White, modifier = Modifier.size(30.dp))
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text("Accept", style = MaterialTheme.typography.bodySmall, color = Color.White)
+            if (uiState.resumedMonitoringBanner) {
+                ResumedMonitoringBanner()
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                ChevronIndicator()
-                Spacer(modifier = Modifier.height(6.dp))
-                Box(
-                    modifier = Modifier.size(68.dp).clip(CircleShape).background(DangerRed),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Filled.CallEnd, contentDescription = "Decline", tint = Color.White, modifier = Modifier.size(30.dp))
-                }
-                Spacer(modifier = Modifier.height(6.dp))
-                Text("Decline", style = MaterialTheme.typography.bodySmall, color = Color.White)
+            if (uiState.stage == CallStage.IN_CALL_MONITORING && uiState.connectionError != null) {
+                ConnectionErrorBanner(message = uiState.connectionError.orEmpty())
             }
         }
     }
 }
 
 @Composable
-fun ChevronIndicator() {
-    val infiniteTransition = rememberInfiniteTransition(label = "chevron")
-    val offsetY by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = -6f,
-        animationSpec = infiniteRepeatable(animation = tween(600, easing = EaseInOutSine), repeatMode = RepeatMode.Reverse),
-        label = "chevron_offset"
-    )
-
-    Column(modifier = Modifier.offset(y = offsetY.dp)) {
-        repeat(2) {
-            Icon(
-                imageVector = Icons.Filled.KeyboardArrowUp,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.5f),
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun InCallBackground(elapsedSeconds: Int, onDecline: () -> Unit) {
+private fun BoxScope.MonitoringStatusChip(elapsedSeconds: Int, onStop: () -> Unit) {
     val minutes = elapsedSeconds / 60
     val seconds = elapsedSeconds % 60
     val timeText = "%02d:%02d".format(minutes, seconds)
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Surface(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(top = 16.dp, end = 16.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = CallBackgroundColor.copy(alpha = 0.9f)
     ) {
-        Spacer(modifier = Modifier.height(60.dp))
-
-        Text(
-            text = timeText,
-            style = MaterialTheme.typography.headlineMedium,
-            color = Color.White,
-            fontWeight = FontWeight.Medium
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Box(
-            modifier = Modifier.size(100.dp).clip(CircleShape).background(Color.White),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Person,
-                contentDescription = null,
-                tint = CallBackgroundColor.copy(alpha = 0.85f),
-                modifier = Modifier.size(56.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
         Row(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 340.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            InCallIconButton(icon = Icons.Filled.Videocam, label = "video")
-            InCallIconButton(icon = Icons.Filled.Dialpad, label = "keypad")
-            InCallIconButton(icon = Icons.Filled.Pause, label = "hold")
-        }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(bottom = 60.dp)) {
+            Icon(Icons.Filled.Shield, contentDescription = null, tint = Color.White, modifier = Modifier.size(14.dp))
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(timeText, style = MaterialTheme.typography.labelSmall, color = Color.White)
+            Spacer(modifier = Modifier.width(10.dp))
             Box(
                 modifier = Modifier
-                    .size(68.dp)
+                    .size(22.dp)
                     .clip(CircleShape)
                     .background(DangerRed)
-                    .clickable(onClick = onDecline),
+                    .clickable(onClick = onStop),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Filled.CallEnd,
-                    contentDescription = "Decline",
+                    contentDescription = "Akhiri Pemantauan HangOn",
                     tint = Color.White,
-                    modifier = Modifier.size(30.dp)
+                    modifier = Modifier.size(12.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(6.dp))
-            Text("Decline", style = MaterialTheme.typography.bodySmall, color = Color.White)
         }
-    }
-}
-
-@Composable
-private fun InCallIconButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(Color.Transparent),
-            contentAlignment = Alignment.Center
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = Color.Transparent,
-                border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.5f)),
-                modifier = Modifier.size(56.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(icon, contentDescription = label, tint = Color.White, modifier = Modifier.size(22.dp))
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(label, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.8f))
     }
 }
 
@@ -432,29 +284,6 @@ private fun BoxScope.SuspiciousActivityCard(
             Spacer(modifier = Modifier.height(20.dp))
 
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)) {
-                Text(
-                    "SUSPICIOUS KEYWORD",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
-                    letterSpacing = 0.5.sp
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    uiState.suspiciousKeywords.forEach { keyword ->
-                        Surface(shape = RoundedCornerShape(8.dp), color = DangerRed.copy(alpha = 0.1f)) {
-                            Text(
-                                keyword,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = DangerRed,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Text("REASONING", style = MaterialTheme.typography.labelSmall, color = TextSecondary, letterSpacing = 0.5.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 Surface(
@@ -640,6 +469,211 @@ private fun BoxScope.CodewordVerifiedCard() {
 }
 
 @Composable
+private fun BoxScope.VoiceCheckCard(onResponse: (recognized: Boolean) -> Unit) {
+    AnimatedOverlayCard {
+        OverlayCardShell {
+            Spacer(modifier = Modifier.height(28.dp))
+
+            Box(
+                modifier = Modifier.size(64.dp).clip(CircleShape).background(HangOnBlue.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Filled.RecordVoiceOver, contentDescription = null, tint = HangOnBlue, modifier = Modifier.size(32.dp))
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Do you recognize\nthis caller's voice?",
+                style = MaterialTheme.typography.headlineSmall,
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "This helps us tell a real contact apart from a cloned voice.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { onResponse(false) },
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary),
+                    border = BorderStroke(1.5.dp, TextSecondary.copy(alpha = 0.4f))
+                ) {
+                    Text("No, I don't", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                }
+
+                Button(
+                    onClick = { onResponse(true) },
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
+                ) {
+                    Text("Yes, I know it", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.HighRiskWarningCard(onEndCall: () -> Unit, onContinueAtOwnRisk: () -> Unit) {
+    AnimatedOverlayCard {
+        OverlayCardShell {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(DangerRed, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Warning, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("High Risk Call", style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.SemiBold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Unrecognized voice +\nsuspicious topic",
+                style = MaterialTheme.typography.headlineSmall,
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Text(
+                text = "This call shows strong signs of a scam. We recommend ending it now.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp),
+                lineHeight = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onContinueAtOwnRisk,
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
+                    border = BorderStroke(1.5.dp, TextSecondary.copy(alpha = 0.4f))
+                ) {
+                    Text("Continue Anyway", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                }
+
+                Button(
+                    onClick = onEndCall,
+                    modifier = Modifier.weight(1f).height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
+                ) {
+                    Text("End Call", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.SessionSummaryCard(verificationStatus: String?) {
+    val (icon, tint, label) = when (verificationStatus) {
+        "terverifikasi" -> Triple(Icons.Filled.VerifiedUser, SuccessGreen, "Caller Verified")
+        "gagal" -> Triple(Icons.Filled.GppBad, DangerRed, "Verification Failed")
+        else -> Triple(Icons.Filled.Shield, TextSecondary, "Call Monitoring Ended")
+    }
+
+    AnimatedOverlayCard {
+        OverlayCardShell {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(56.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(label, style = MaterialTheme.typography.headlineSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "This call's protection summary has been saved.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.ResumedMonitoringBanner() {
+    Surface(
+        modifier = Modifier
+            .align(Alignment.TopCenter)
+            .padding(top = 60.dp, start = 24.dp, end = 24.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = HangOnBlueDark
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Filled.Shield, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                "Monitoring resumed at your own risk",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.ConnectionErrorBanner(message: String) {
+    Surface(
+        modifier = Modifier
+            .align(Alignment.TopCenter)
+            .padding(top = 60.dp, start = 24.dp, end = 24.dp),
+        shape = RoundedCornerShape(14.dp),
+        color = DangerRed
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Filled.Warning, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(message, style = MaterialTheme.typography.bodySmall, color = Color.White, fontWeight = FontWeight.SemiBold)
+        }
+    }
+}
+
+@Composable
 private fun BoxScope.AnimatedOverlayCard(content: @Composable () -> Unit) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
@@ -664,19 +698,5 @@ private fun OverlayCardShell(content: @Composable androidx.compose.foundation.la
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             content()
         }
-    }
-}
-
-@Composable
-fun CallOverlayPreviewScreen(onDismiss: () -> Unit) {
-    val viewModel: CallOverlayViewModel = viewModel(
-        factory = CallOverlayViewModelFactory("+1 1234 5678 90")
-    )
-
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = false)
-    ) {
-        CallOverlayScreen(viewModel = viewModel, onFinished = onDismiss)
     }
 }
