@@ -13,21 +13,21 @@ class InMemoryPermissionRepository : PermissionRepository {
         Permission(
             id = "contacts",
             title = "Contact Access",
-            description = "Mencocokkan nomor masuk dengan kontak Anda.",
+            description = "Kenali penelepon dari kontak yang tersimpan.",
             isRequired = false,
             isGranted = true
         ),
         Permission(
             id = "audio",
             title = "Call Audio Access",
-            description = "Diperlukan untuk merekam audio selama panggilan.",
+            description = "Wajib untuk mendeteksi indikasi penipuan dari audio panggilan.",
             isRequired = true,
             isGranted = true
         ),
         Permission(
             id = "overlay",
             title = "Display Over Other Apps",
-            description = "Diperlukan untuk menampilkan overlay peringatan.",
+            description = "Wajib untuk menampilkan peringatan saat panggilan masuk.",
             isRequired = true,
             isGranted = false
         )

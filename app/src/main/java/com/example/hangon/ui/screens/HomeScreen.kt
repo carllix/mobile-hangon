@@ -1,5 +1,8 @@
 package com.example.hangon.ui.screens
 
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.hangon.R
 import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -130,24 +133,15 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
             }
         }
 
-        // Logo + App Name Header
-        Icon(
-            imageVector = Icons.Filled.Call,
+        // Logo + App Name Header (image version)
+        Image(
+            painter = painterResource(id = R.drawable.ic_logo_text),
             contentDescription = "HangOn Logo",
-            tint = HangOnBlue,
-            modifier = Modifier.size(52.dp)
+            modifier = Modifier
+                .height(120.dp)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "HangOn",
-            style = MaterialTheme.typography.headlineLarge,
-            color = TextPrimary,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         // Activate App Card
         ActivateAppCard(isActivated = uiState.appActivated, onToggle = viewModel::onAppActivatedChange)
@@ -198,9 +192,9 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
         Spacer(modifier = Modifier.height(24.dp))
 
         // Status summary banner
-        StatusBanner(appActivated = uiState.appActivated, permissions = uiState.permissions)
+        //StatusBanner(appActivated = uiState.appActivated, permissions = uiState.permissions)
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         // ── Simulate incoming call button (for testing overlay without backend) ──
         SimulateCallButton(onClick = { viewModel.onShowCallSimulation(true) })
@@ -210,11 +204,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
 // --- Activate App Card ---
 @Composable
 fun ActivateAppCard(isActivated: Boolean, onToggle: (Boolean) -> Unit) {
-    val gradientColors = if (isActivated) {
-        listOf(HangOnBlue, HangOnBlueDark)
-    } else {
-        listOf(TextSecondary, TextSecondary.copy(alpha = 0.7f))
-    }
+    val cardColor = if (isActivated) HangOnBlue else TextSecondary
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -224,7 +214,7 @@ fun ActivateAppCard(isActivated: Boolean, onToggle: (Boolean) -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.linearGradient(gradientColors))
+                .background(cardColor)
                 .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
             Row(
@@ -233,10 +223,6 @@ fun ActivateAppCard(isActivated: Boolean, onToggle: (Boolean) -> Unit) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (isActivated) {
-                            PulsingDot()
-                            Spacer(modifier = Modifier.width(8.dp))
-                        }
                         Text(
                             text = "Activate App",
                             style = MaterialTheme.typography.titleLarge,
@@ -269,26 +255,6 @@ fun ActivateAppCard(isActivated: Boolean, onToggle: (Boolean) -> Unit) {
             }
         }
     }
-}
-
-@Composable
-fun PulsingDot() {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.4f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(700, easing = EaseInOutSine),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "dot_alpha"
-    )
-    Box(
-        modifier = Modifier
-            .size(8.dp)
-            .clip(CircleShape)
-            .background(SuccessGreen.copy(alpha = alpha))
-    )
 }
 
 // --- Permission Row ---
