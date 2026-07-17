@@ -91,7 +91,7 @@ class CallOverlayViewModel(
             viewModelScope.launch {
                 val idToken = authRepository.getIdToken()
                 if (idToken == null) {
-                    _uiState.update { it.copy(connectionError = "Sesi tidak valid, silakan masuk kembali.") }
+                    _uiState.update { it.copy(connectionError = "Invalid session, please sign in again.") }
                     return@launch
                 }
                 service.startMonitoring(callId, _uiState.value.callerNumber, idToken)
@@ -237,7 +237,7 @@ class CallOverlayViewModel(
                 isVerifyingCodeword = false,
                 triesLeft = retriesLeft,
                 codewordInput = "",
-                codewordError = "Kode kata salah.",
+                codewordError = "Incorrect codeword.",
                 stage = if (retriesLeft <= 0) CallStage.AWAITING_RISK_DECISION else it.stage
             )
         }

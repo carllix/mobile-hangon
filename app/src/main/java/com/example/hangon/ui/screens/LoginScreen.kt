@@ -88,7 +88,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Masuk ke akun Anda",
+            text = "Sign in to your account",
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary
         )
@@ -118,7 +118,7 @@ fun LoginScreen(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (passwordVisible) "Sembunyikan password" else "Tampilkan password"
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
                     )
                 }
             },
@@ -153,7 +153,7 @@ fun LoginScreen(
                     strokeWidth = 2.dp
                 )
             } else {
-                Text("Masuk", fontWeight = FontWeight.SemiBold)
+                Text("Sign In", fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -161,8 +161,8 @@ fun LoginScreen(
 
         TextButton(onClick = onNavigateToRegister) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                Text("Belum punya akun? ", color = TextSecondary)
-                Text("Daftar", color = HangOnBlue, fontWeight = FontWeight.SemiBold)
+                Text("Don't have an account? ", color = TextSecondary)
+                Text("Register", color = HangOnBlue, fontWeight = FontWeight.SemiBold)
             }
         }
     }

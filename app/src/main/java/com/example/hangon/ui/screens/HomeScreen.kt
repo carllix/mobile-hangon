@@ -14,7 +14,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,32 +29,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,46 +67,18 @@ import com.example.hangon.ui.theme.SuccessGreen
 import com.example.hangon.ui.theme.SurfaceWhite
 import com.example.hangon.ui.theme.TextPrimary
 import com.example.hangon.ui.theme.TextSecondary
-import com.example.hangon.ui.theme.WarningOrange
 import com.example.hangon.ui.viewmodel.HomeViewModel
 
 // --- Home Screen ---
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}) {
+fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showLogoutConfirm by remember { mutableStateOf(false) }
     val permissionHandler = rememberPermissionRowHandler()
     val context = LocalContext.current
     val callScreeningLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { viewModel.refresh() }
-    RefreshPermissionsOnResume(onResume = viewModel::refresh)
-
-    if (showLogoutConfirm) {
-        AlertDialog(
-            onDismissRequest = { showLogoutConfirm = false },
-            containerColor = SurfaceWhite,
-            shape = RoundedCornerShape(24.dp),
-            title = { Text("Keluar dari Akun?", fontWeight = FontWeight.Bold, color = TextPrimary) },
-            text = { Text("Anda perlu masuk kembali untuk menggunakan HangOn.", color = TextSecondary) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showLogoutConfirm = false
-                        onLogout()
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
-                ) {
-                    Text("Keluar", fontWeight = FontWeight.SemiBold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutConfirm = false }) {
-                    Text("Batal", color = TextSecondary)
-                }
-            }
-        )
-    }
+    RefreshOnResume(onResume = viewModel::refresh)
 
     Column(
         modifier = Modifier
@@ -127,16 +89,6 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
             .padding(top = 56.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            IconButton(onClick = { showLogoutConfirm = true }) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Logout,
-                    contentDescription = "Keluar",
-                    tint = TextSecondary
-                )
-            }
-        }
-
         // Logo + App Name Header (image version)
         Image(
             painter = painterResource(id = R.drawable.ic_logo_text),
@@ -240,13 +192,19 @@ fun ActivateAppCard(isActivated: Boolean, onToggle: (Boolean) -> Unit) {
                             color = Color.White,
                             fontWeight = FontWeight.Bold
                         )
+                        Text(
+                            text = " *",
+                            style = MaterialTheme.typography.titleLarge,
+                            color = DangerRed,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = if (isActivated)
-                            "HangOn aktif sebagai call screening app."
+                            "HangOn is active as your call screening app."
                         else
-                            "Aktifkan HangOn sebagai call screening app.",
+                            "Activate HangOn as your call screening app.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.85f)
                     )
@@ -309,19 +267,13 @@ fun HomePermissionRow(
                     color = TextPrimary,
                     fontWeight = FontWeight.SemiBold
                 )
-                if (!isRequired) {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = WarningOrange.copy(alpha = 0.12f)
-                    ) {
-                        Text(
-                            text = "Opsional",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = WarningOrange,
-                            modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                        )
-                    }
+                if (isRequired) {
+                    Text(
+                        text = " *",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = DangerRed,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(2.dp))
@@ -364,19 +316,19 @@ fun StatusBanner(appActivated: Boolean, permissions: List<Permission>) {
             bgColor = TextSecondary.copy(alpha = 0.1f)
             textColor = TextSecondary
             icon = Icons.Filled.PauseCircle
-            message = "HangOn tidak aktif. Aktifkan untuk mulai melindungi Anda."
+            message = "HangOn is inactive. Activate it to start protecting you."
         }
         missingRequired.isNotEmpty() -> {
             bgColor = DangerRed.copy(alpha = 0.08f)
             textColor = DangerRed
             icon = Icons.Filled.Warning
-            message = "Izin wajib belum diberikan: ${missingRequired.joinToString(", ") { it.title }}"
+            message = "Required permissions not granted: ${missingRequired.joinToString(", ") { it.title }}"
         }
         else -> {
             bgColor = SuccessGreen.copy(alpha = 0.08f)
             textColor = SuccessGreen
             icon = Icons.Filled.VerifiedUser
-            message = "HangOn aktif dan siap melindungi panggilan Anda."
+            message = "HangOn is active and ready to protect your calls."
         }
     }
 

@@ -50,15 +50,15 @@ class RegisterViewModel(
         val state = _uiState.value
 
         if (state.fullName.isBlank() || state.email.isBlank() || state.password.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Nama, email, dan password wajib diisi.") }
+            _uiState.update { it.copy(errorMessage = "Name, email, and password are required.") }
             return
         }
         if (state.password.length < MIN_PASSWORD_LENGTH) {
-            _uiState.update { it.copy(errorMessage = "Password minimal $MIN_PASSWORD_LENGTH karakter.") }
+            _uiState.update { it.copy(errorMessage = "Password must be at least $MIN_PASSWORD_LENGTH characters.") }
             return
         }
         if (state.password != state.confirmPassword) {
-            _uiState.update { it.copy(errorMessage = "Konfirmasi password tidak cocok.") }
+            _uiState.update { it.copy(errorMessage = "Passwords do not match.") }
             return
         }
 

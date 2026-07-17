@@ -113,7 +113,7 @@ class FamilyDetailViewModel(
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    _uiState.update { it.copy(errorMessage = "Gagal menghasilkan codeword.") }
+                    _uiState.update { it.copy(errorMessage = "Failed to generate codeword.") }
                     break
                 }
                 delay(1000)

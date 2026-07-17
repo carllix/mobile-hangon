@@ -1,5 +1,6 @@
 package com.example.hangon.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -37,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -45,10 +47,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.hangon.R
 import com.example.hangon.ui.theme.BackgroundLight
 import com.example.hangon.ui.theme.DangerRed
 import com.example.hangon.ui.theme.HangOnBlue
-import com.example.hangon.ui.theme.TextPrimary
 import com.example.hangon.ui.theme.TextSecondary
 import com.example.hangon.ui.viewmodel.RegisterViewModel
 
@@ -76,26 +78,17 @@ fun RegisterScreen(
             .padding(top = 80.dp, bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(
-            imageVector = Icons.Filled.Call,
+        Image(
+            painter = painterResource(id = R.drawable.ic_logo_text),
             contentDescription = "HangOn Logo",
-            tint = HangOnBlue,
-            modifier = Modifier.size(52.dp)
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.height(100.dp)
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "HangOn",
-            style = MaterialTheme.typography.headlineLarge,
-            color = TextPrimary,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = "Buat akun baru",
+            text = "Create a new account",
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary
         )
@@ -105,7 +98,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = uiState.fullName,
             onValueChange = viewModel::onFullNameChange,
-            label = { Text("Nama Lengkap") },
+            label = { Text("Full Name") },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = HangOnBlue),
@@ -137,7 +130,7 @@ fun RegisterScreen(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                        contentDescription = if (passwordVisible) "Sembunyikan password" else "Tampilkan password"
+                        contentDescription = if (passwordVisible) "Hide password" else "Show password"
                     )
                 }
             },
@@ -150,7 +143,7 @@ fun RegisterScreen(
         OutlinedTextField(
             value = uiState.confirmPassword,
             onValueChange = viewModel::onConfirmPasswordChange,
-            label = { Text("Konfirmasi Password") },
+            label = { Text("Confirm Password") },
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
@@ -185,7 +178,7 @@ fun RegisterScreen(
                     strokeWidth = 2.dp
                 )
             } else {
-                Text("Daftar", fontWeight = FontWeight.SemiBold)
+                Text("Register", fontWeight = FontWeight.SemiBold)
             }
         }
 
@@ -193,8 +186,8 @@ fun RegisterScreen(
 
         TextButton(onClick = onNavigateToLogin) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                Text("Sudah punya akun? ", color = TextSecondary)
-                Text("Masuk", color = HangOnBlue, fontWeight = FontWeight.SemiBold)
+                Text("Already have an account? ", color = TextSecondary)
+                Text("Sign In", color = HangOnBlue, fontWeight = FontWeight.SemiBold)
             }
         }
     }

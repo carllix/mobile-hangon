@@ -93,7 +93,7 @@ fun FamilyDetailScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Kembali", tint = TextPrimary)
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimary)
                 }
                 Text(
                     text = uiState.family?.name ?: "",
@@ -142,10 +142,10 @@ fun FamilyDetailScreen(
                 onDismissRequest = viewModel::onCancelRemoveMember,
                 containerColor = SurfaceWhite,
                 shape = RoundedCornerShape(24.dp),
-                title = { Text("Keluarkan Anggota?", fontWeight = FontWeight.Bold, color = TextPrimary) },
+                title = { Text("Remove Member?", fontWeight = FontWeight.Bold, color = TextPrimary) },
                 text = {
                     Text(
-                        "Anggota ini tidak akan bisa lagi menghasilkan codeword yang valid untuk family ini.",
+                        "This member will no longer be able to generate a valid codeword for this family.",
                         color = TextSecondary
                     )
                 },
@@ -154,12 +154,12 @@ fun FamilyDetailScreen(
                         onClick = viewModel::onConfirmRemoveMember,
                         colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
                     ) {
-                        Text("Keluarkan", fontWeight = FontWeight.SemiBold)
+                        Text("Remove", fontWeight = FontWeight.SemiBold)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = viewModel::onCancelRemoveMember) {
-                        Text("Batal", color = TextSecondary)
+                        Text("Cancel", color = TextSecondary)
                     }
                 }
             )
@@ -292,7 +292,7 @@ private fun InviteCodeCard(inviteCode: String, onCopy: () -> Unit) {
                         .size(40.dp)
                         .background(HangOnBlue.copy(alpha = 0.08f), RoundedCornerShape(10.dp))
                 ) {
-                    Icon(Icons.Filled.ContentCopy, contentDescription = "Salin kode", tint = HangOnBlue, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Filled.ContentCopy, contentDescription = "Copy code", tint = HangOnBlue, modifier = Modifier.size(18.dp))
                 }
             }
         }
@@ -324,7 +324,7 @@ private fun CodewordCard(codeword: String, secondsLeft: Int) {
                     Icon(Icons.Filled.Key, contentDescription = null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "CODEWORD AKTIF",
+                        text = "ACTIVE CODEWORD",
                         style = MaterialTheme.typography.labelMedium,
                         color = Color.White.copy(alpha = 0.7f),
                         letterSpacing = 1.sp
@@ -371,7 +371,7 @@ private fun CodewordCard(codeword: String, secondsLeft: Int) {
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = "Bacakan codeword ini jika ada yang mengaku sebagai anggota family saat menelepon.",
+                    text = "Read this codeword aloud if someone claims to be a family member during a call.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.6f)
                 )
@@ -409,7 +409,7 @@ private fun MemberRow(member: FamilyMember, canRemove: Boolean, onRemove: () -> 
         if (canRemove) {
             Spacer(modifier = Modifier.width(8.dp))
             IconButton(onClick = onRemove, modifier = Modifier.size(28.dp)) {
-                Icon(Icons.Filled.Close, contentDescription = "Keluarkan anggota", tint = DangerRed, modifier = Modifier.size(16.dp))
+                Icon(Icons.Filled.Close, contentDescription = "Remove member", tint = DangerRed, modifier = Modifier.size(16.dp))
             }
         }
     }

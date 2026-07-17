@@ -32,7 +32,7 @@ class RetrofitFamilyRepository(
 
     private suspend fun bearer(): String {
         val token = authRepository.getIdToken()
-            ?: throw IllegalStateException("Sesi tidak valid, silakan masuk kembali.")
+            ?: throw IllegalStateException("Invalid session, please sign in again.")
         return "Bearer $token"
     }
 
@@ -42,11 +42,11 @@ class RetrofitFamilyRepository(
         } catch (e: CancellationException) {
             throw e
         } catch (e: HttpException) {
-            ApiResult.Failure(e.response()?.errorBody()?.string() ?: "Terjadi kesalahan (${e.code()})")
+            ApiResult.Failure(e.response()?.errorBody()?.string() ?: "An error occurred (${e.code()})")
         } catch (e: IOException) {
-            ApiResult.Failure("Tidak dapat terhubung ke server. Periksa koneksi Anda.")
+            ApiResult.Failure("Unable to connect to the server. Please check your connection.")
         } catch (e: Exception) {
-            ApiResult.Failure(e.message ?: "Terjadi kesalahan tak terduga.")
+            ApiResult.Failure(e.message ?: "An unexpected error occurred.")
         }
     }
 
@@ -67,7 +67,7 @@ class RetrofitFamilyRepository(
     override suspend fun getFamilyDetail(familyId: String): ApiResult<FamilyDetail> = safeCall {
         val auth = bearer()
         val summary = api.listMyFamilies(auth).families.find { it.id == familyId }
-            ?: throw IllegalStateException("Family tidak ditemukan")
+            ?: throw IllegalStateException("Family not found")
         val members = api.getMembers(auth, familyId)
         members.toDomain(
             familyId = summary.id,

@@ -9,3 +9,8 @@ data class MeResponseDto(
     @SerialName("firebase_uid") val firebaseUid: String,
     @SerialName("display_name") val displayName: String?
 )
+
+@Serializable
+data class UpdateDisplayNameRequestDto(
+    @SerialName("display_name") val displayName: String
+)

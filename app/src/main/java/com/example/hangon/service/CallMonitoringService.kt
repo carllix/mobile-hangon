@@ -189,7 +189,7 @@ class CallMonitoringService : Service() {
                 Log.w(TAG, "Call WebSocket failure", t)
                 stopAudioCapture()
                 serviceScope.launch {
-                    _events.emit(CallServerEvent.Error(t.message ?: "Koneksi ke server terputus"))
+                    _events.emit(CallServerEvent.Error(t.message ?: "Connection to server lost"))
                 }
             }
 
@@ -204,7 +204,7 @@ class CallMonitoringService : Service() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            serviceScope.launch { _events.emit(CallServerEvent.Error("Izin mikrofon tidak diberikan")) }
+            serviceScope.launch { _events.emit(CallServerEvent.Error("Microphone permission not granted")) }
             return
         }
 
@@ -257,7 +257,7 @@ class CallMonitoringService : Service() {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Pemantauan Panggilan",
+            "Call Monitoring",
             NotificationManager.IMPORTANCE_LOW
         )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
@@ -265,8 +265,8 @@ class CallMonitoringService : Service() {
 
     private fun buildNotification(): Notification =
         NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("HangOn sedang memantau panggilan")
-            .setContentText("Audio dianalisis untuk mendeteksi indikasi penipuan.")
+            .setContentTitle("HangOn is monitoring this call")
+            .setContentText("Audio is being analyzed to detect signs of a scam.")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .build()

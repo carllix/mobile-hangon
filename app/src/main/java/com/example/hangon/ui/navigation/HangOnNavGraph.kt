@@ -20,8 +20,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -46,6 +48,7 @@ import com.example.hangon.ui.screens.FamilyDetailScreen
 import com.example.hangon.ui.screens.FamilyListScreen
 import com.example.hangon.ui.screens.HomeScreen
 import com.example.hangon.ui.screens.LoginScreen
+import com.example.hangon.ui.screens.ProfileScreen
 import com.example.hangon.ui.screens.RegisterScreen
 import com.example.hangon.ui.theme.BackgroundLight
 import com.example.hangon.ui.theme.HangOnBlue
@@ -68,13 +71,14 @@ fun HangOnNavGraph(startDestination: String) {
 
     val navItems = listOf(
         NavItem(Screen.Home.route, "Home", Icons.Filled.Home, Icons.Outlined.Home),
-        NavItem(Screen.Family.route, "Family", Icons.Filled.Groups, Icons.Outlined.Groups)
+        NavItem(Screen.Family.route, "Family", Icons.Filled.Groups, Icons.Outlined.Groups),
+        NavItem(Screen.Profile.route, "Profile", Icons.Filled.Person, Icons.Outlined.Person)
     )
 
     Scaffold(
         containerColor = BackgroundLight,
         bottomBar = {
-            if (currentRoute == Screen.Home.route || currentRoute == Screen.Family.route) {
+            if (currentRoute == Screen.Home.route || currentRoute == Screen.Family.route || currentRoute == Screen.Profile.route) {
                 HangOnBottomBar(
                     items = navItems,
                     currentRoute = currentRoute,
@@ -125,7 +129,11 @@ fun HangOnNavGraph(startDestination: String) {
             }
 
             composable(Screen.Home.route) {
-                HomeScreen(
+                HomeScreen()
+            }
+
+            composable(Screen.Profile.route) {
+                ProfileScreen(
                     onLogout = {
                         FirebaseAuth.getInstance().signOut()
                         navController.navigate(Screen.Login.route) {
@@ -133,6 +141,7 @@ fun HangOnNavGraph(startDestination: String) {
                         }
                         navController.clearBackStack(Screen.Home.route)
                         navController.clearBackStack(Screen.Family.route)
+                        navController.clearBackStack(Screen.Profile.route)
                     }
                 )
             }

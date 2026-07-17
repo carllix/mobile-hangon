@@ -37,7 +37,7 @@ class LoginViewModel(
     fun onLoginClick() {
         val state = _uiState.value
         if (state.email.isBlank() || state.password.isBlank()) {
-            _uiState.update { it.copy(errorMessage = "Email dan password wajib diisi.") }
+            _uiState.update { it.copy(errorMessage = "Email and password are required.") }
             return
         }
 

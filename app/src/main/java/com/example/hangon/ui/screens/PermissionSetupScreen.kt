@@ -47,7 +47,7 @@ fun PermissionSetupScreen(
     val permissions = uiState.permissions
     val allRequiredGranted = uiState.allRequiredGranted
     val permissionHandler = rememberPermissionRowHandler()
-    RefreshPermissionsOnResume(onResume = viewModel::refresh)
+    RefreshOnResume(onResume = viewModel::refresh)
 
     Box(
         modifier = Modifier
@@ -81,7 +81,7 @@ fun PermissionSetupScreen(
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Izin yang Diperlukan",
+                text = "Required Permissions",
                 style = MaterialTheme.typography.headlineMedium,
                 color = TextPrimary,
                 fontWeight = FontWeight.Bold
@@ -90,7 +90,7 @@ fun PermissionSetupScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "HangOn memerlukan beberapa izin agar dapat melindungi Anda dari penipuan telepon secara real-time.",
+                text = "HangOn needs a few permissions to protect you from phone scams in real time.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
                 textAlign = TextAlign.Center,
@@ -143,7 +143,7 @@ fun PermissionSetupScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (allRequiredGranted) "Mulai Perlindungan" else "Berikan Izin yang Diperlukan",
+                    text = if (allRequiredGranted) "Start Protection" else "Grant Required Permissions",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -210,7 +210,7 @@ fun PermissionCard(
                             color = WarningOrange.copy(alpha = 0.12f)
                         ) {
                             Text(
-                                text = "Opsional",
+                                text = "Optional",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = WarningOrange,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)

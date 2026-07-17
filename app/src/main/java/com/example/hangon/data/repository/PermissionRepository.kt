@@ -41,25 +41,25 @@ class AndroidPermissionRepository(
 
     override fun getHomePermissions(): List<Permission> = listOf(
         Permission(
-            id = "contacts",
-            title = "Contact Access",
-            description = "Mencocokkan nomor masuk dengan kontak Anda.",
-            isRequired = false,
-            isGranted = isGranted("contacts")
-        ),
-        Permission(
             id = "audio",
             title = "Call Audio Access",
-            description = "Diperlukan untuk merekam audio selama panggilan.",
+            description = "Required to record audio during calls.",
             isRequired = true,
             isGranted = isGranted("audio")
         ),
         Permission(
             id = "overlay",
             title = "Display Over Other Apps",
-            description = "Diperlukan untuk menampilkan overlay peringatan.",
+            description = "Required to show warning overlays.",
             isRequired = true,
             isGranted = isGranted("overlay")
+        ),
+        Permission(
+            id = "contacts",
+            title = "Contact Access",
+            description = "Matches incoming numbers against your contacts.",
+            isRequired = false,
+            isGranted = isGranted("contacts")
         )
     )
 
@@ -67,28 +67,28 @@ class AndroidPermissionRepository(
         Permission(
             id = "call_screening",
             title = "Call Screening",
-            description = "Diperlukan untuk mendeteksi panggilan masuk dan nomor yang tidak dikenal.",
+            description = "Required to detect incoming calls and unrecognized numbers.",
             isRequired = true,
             isGranted = isGranted("call_screening")
         ),
         Permission(
             id = "audio",
-            title = "Akses Audio Panggilan",
-            description = "Diperlukan untuk mendengarkan dan menganalisis audio selama panggilan berlangsung.",
+            title = "Call Audio Access",
+            description = "Required to listen to and analyze audio during a call.",
             isRequired = true,
             isGranted = isGranted("audio")
         ),
         Permission(
             id = "overlay",
-            title = "Tampil di Atas App Lain",
-            description = "Diperlukan untuk menampilkan overlay peringatan selama panggilan berjalan.",
+            title = "Display Over Other Apps",
+            description = "Required to show warning overlays while a call is active.",
             isRequired = true,
             isGranted = isGranted("overlay")
         ),
         Permission(
             id = "contacts",
-            title = "Akses Kontak",
-            description = "Opsional. Digunakan untuk mencocokkan nomor masuk dengan daftar kontak Anda.",
+            title = "Contact Access",
+            description = "Optional. Used to match incoming numbers against your contact list.",
             isRequired = false,
             isGranted = isGranted("contacts")
         )

@@ -68,7 +68,7 @@ private fun isPermanentlyDenied(activity: Activity?, permissionId: String, runti
 }
 
 @Composable
-fun RefreshPermissionsOnResume(onResume: () -> Unit) {
+fun RefreshOnResume(onResume: () -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val latestOnResume = rememberUpdatedState(onResume)
 

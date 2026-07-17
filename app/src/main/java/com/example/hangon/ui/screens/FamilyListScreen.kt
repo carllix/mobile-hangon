@@ -66,6 +66,7 @@ fun FamilyListScreen(
     viewModel: FamilyListViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    RefreshOnResume(onResume = viewModel::loadFamilies)
 
     Box(modifier = Modifier.fillMaxSize().background(BackgroundLight)) {
         when {
@@ -237,7 +238,7 @@ fun NoFamilyView(onCreateFamily: () -> Unit, onJoinFamily: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Buat atau Gabung Family",
+            text = "Create or Join a Family",
             style = MaterialTheme.typography.headlineMedium,
             color = TextPrimary,
             fontWeight = FontWeight.Bold,
@@ -247,7 +248,7 @@ fun NoFamilyView(onCreateFamily: () -> Unit, onJoinFamily: () -> Unit) {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "Family adalah kelompok orang terpercaya. Codeword bersama akan di-generate setiap 60 detik untuk memverifikasi identitas saat panggilan.",
+            text = "A Family is a group of trusted people. A shared codeword is generated every 60 seconds to verify identity during calls.",
             style = MaterialTheme.typography.bodyMedium,
             color = TextSecondary,
             textAlign = TextAlign.Center,

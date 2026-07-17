@@ -171,7 +171,7 @@ private fun MonitoringStatusChip(elapsedSeconds: Int, onStop: () -> Unit, modifi
             ) {
                 Icon(
                     imageVector = Icons.Filled.CallEnd,
-                    contentDescription = "Akhiri Pemantauan HangOn",
+                    contentDescription = "End HangOn Monitoring",
                     tint = Color.White,
                     modifier = Modifier.size(12.dp)
                 )
@@ -240,7 +240,7 @@ fun CallConfirmationCard(onYes: () -> Unit, onNo: () -> Unit) {
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary),
                     border = BorderStroke(1.5.dp, TextSecondary.copy(alpha = 0.4f))
                 ) {
-                    Text("No", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                    Text("No", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, textAlign = TextAlign.Center)
                 }
 
                 Button(
@@ -249,7 +249,7 @@ fun CallConfirmationCard(onYes: () -> Unit, onNo: () -> Unit) {
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
                 ) {
-                    Text("Yes", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White)
+                    Text("Yes", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -318,7 +318,7 @@ private fun SuspiciousActivityCard(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
                     border = BorderStroke(1.5.dp, TextSecondary.copy(alpha = 0.4f))
                 ) {
-                    Text("Continue", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                    Text("Continue", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, textAlign = TextAlign.Center)
                 }
 
                 Button(
@@ -327,7 +327,7 @@ private fun SuspiciousActivityCard(
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
                 ) {
-                    Text("End Call", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White)
+                    Text("End Call", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -373,7 +373,12 @@ private fun CodewordPromptCard(onRequestInput: () -> Unit) {
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
             ) {
-                Text("Type the code word they say", fontWeight = FontWeight.SemiBold, color = Color.White)
+                Text(
+                    "Type the code word they say",
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -439,7 +444,12 @@ private fun CodewordInputCard(
                     if (uiState.isVerifyingCodeword) {
                         CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White, strokeWidth = 2.dp)
                     } else {
-                        Text("Verify Code Word", fontWeight = FontWeight.SemiBold, color = Color.White)
+                        Text(
+                            "Verify Code Word",
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
             }
@@ -519,7 +529,7 @@ private fun VoiceCheckCard(onResponse: (recognized: Boolean) -> Unit) {
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary),
                     border = BorderStroke(1.5.dp, TextSecondary.copy(alpha = 0.4f))
                 ) {
-                    Text("No, I don't", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                    Text("No, I don't", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, textAlign = TextAlign.Center)
                 }
 
                 Button(
@@ -528,7 +538,7 @@ private fun VoiceCheckCard(onResponse: (recognized: Boolean) -> Unit) {
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = HangOnBlue)
                 ) {
-                    Text("Yes, I know it", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White)
+                    Text("Yes, I know it", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White, textAlign = TextAlign.Center)
                 }
             }
         }
@@ -587,7 +597,7 @@ private fun HighRiskWarningCard(onEndCall: () -> Unit, onContinueAtOwnRisk: () -
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
                     border = BorderStroke(1.5.dp, TextSecondary.copy(alpha = 0.4f))
                 ) {
-                    Text("Continue Anyway", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                    Text("Continue Anyway", fontWeight = FontWeight.SemiBold, fontSize = 14.sp, textAlign = TextAlign.Center)
                 }
 
                 Button(
@@ -596,7 +606,7 @@ private fun HighRiskWarningCard(onEndCall: () -> Unit, onContinueAtOwnRisk: () -
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = DangerRed)
                 ) {
-                    Text("End Call", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White)
+                    Text("End Call", fontWeight = FontWeight.SemiBold, fontSize = 15.sp, color = Color.White, textAlign = TextAlign.Center)
                 }
             }
         }
