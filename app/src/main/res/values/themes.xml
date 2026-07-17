@@ -6,7 +6,7 @@
     <!-- Splash screen theme using androidx.core:core-splashscreen -->
     <style name="Theme.HangOn.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#004EE0</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_logo_splash</item>
         <item name="postSplashScreenTheme">@style/Theme.HangOn</item>
     </style>
 
