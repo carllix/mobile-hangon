@@ -45,7 +45,9 @@
             android:theme="@style/Theme.Transparent"
             android:showWhenLocked="true"
             android:turnScreenOn="true"
-            android:launchMode="singleTask" />
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:excludeFromRecents="true" />
 
         <!-- Detects incoming calls; launches CallOverlayActivity for unrecognized numbers -->
         <service
