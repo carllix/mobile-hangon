@@ -137,11 +137,13 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
         Image(
             painter = painterResource(id = R.drawable.ic_logo_text),
             contentDescription = "HangOn Logo",
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit,
             modifier = Modifier
+                .fillMaxWidth()
                 .height(120.dp)
         )
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(36.dp))
 
         // Activate App Card
         ActivateAppCard(isActivated = uiState.appActivated, onToggle = viewModel::onAppActivatedChange)
@@ -189,12 +191,12 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel(), onLogout: () -> Unit = {}
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Status summary banner
         //StatusBanner(appActivated = uiState.appActivated, permissions = uiState.permissions)
 
-        Spacer(modifier = Modifier.height(10.dp))
+        //Spacer(modifier = Modifier.height(10.dp))
 
         // ── Simulate incoming call button (for testing overlay without backend) ──
         SimulateCallButton(onClick = { viewModel.onShowCallSimulation(true) })
@@ -270,7 +272,7 @@ fun HomePermissionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
+            .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
