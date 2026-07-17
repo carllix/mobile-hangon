@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val CODEWORD_MAX_TRIES = 2
+private const val SUSPICION_CONFIDENCE_THRESHOLD = 0.7
 private const val CODEWORD_VERIFIED_DISPLAY_MS = 2500L
 private const val RESUMED_BANNER_DISPLAY_MS = 2500L
 private const val SESSION_SUMMARY_DISPLAY_MS = 3000L
@@ -55,6 +56,7 @@ data class CallOverlayUiState(
     val callElapsedSeconds: Int = 0,
     val confidence: Int = 0,
     val reasoning: String = "",
+    val flaggedKeywords: List<String> = emptyList(),
     val codewordInput: String = "",
     val triesLeft: Int = CODEWORD_MAX_TRIES,
     val codewordError: String? = null,
@@ -170,12 +172,13 @@ class CallOverlayViewModel(
         when (event) {
             is CallServerEvent.SessionStarted -> Unit
 
-            is CallServerEvent.AnalysisResult -> if (event.isSuspicious) {
+            is CallServerEvent.AnalysisResult -> if (event.isSuspicious && event.confidence >= SUSPICION_CONFIDENCE_THRESHOLD) {
                 _uiState.update {
                     it.copy(
                         stage = CallStage.SUSPICIOUS_FLAGGED,
                         confidence = (event.confidence * 100).roundToInt(),
-                        reasoning = event.reason
+                        reasoning = event.reason,
+                        flaggedKeywords = event.flaggedKeywords
                     )
                 }
             }

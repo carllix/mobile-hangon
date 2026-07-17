@@ -11,6 +11,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -256,6 +258,7 @@ fun CallConfirmationCard(onYes: () -> Unit, onNo: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SuspiciousActivityCard(
     uiState: CallOverlayUiState,
@@ -303,6 +306,17 @@ private fun SuspiciousActivityCard(
                         modifier = Modifier.padding(12.dp)
                     )
                 }
+
+                if (uiState.flaggedKeywords.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("FLAGGED KEYWORDS", style = MaterialTheme.typography.labelSmall, color = TextSecondary, letterSpacing = 0.5.sp)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        uiState.flaggedKeywords.forEach { keyword ->
+                            KeywordChip(keyword)
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -331,6 +345,23 @@ private fun SuspiciousActivityCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun KeywordChip(keyword: String) {
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = DangerRed.copy(alpha = 0.1f),
+        border = BorderStroke(1.dp, DangerRed.copy(alpha = 0.3f))
+    ) {
+        Text(
+            text = keyword,
+            style = MaterialTheme.typography.labelSmall,
+            color = DangerRed,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+        )
     }
 }
 

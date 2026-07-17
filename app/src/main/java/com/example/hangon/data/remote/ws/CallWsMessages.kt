@@ -7,6 +7,7 @@ import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -46,7 +47,12 @@ object UserDecisionChoice {
 
 sealed class CallServerEvent {
     data class SessionStarted(val callId: String) : CallServerEvent()
-    data class AnalysisResult(val isSuspicious: Boolean, val confidence: Double, val reason: String) : CallServerEvent()
+    data class AnalysisResult(
+        val isSuspicious: Boolean,
+        val confidence: Double,
+        val reason: String,
+        val flaggedKeywords: List<String> = emptyList()
+    ) : CallServerEvent()
     data object RequestVoiceCheck : CallServerEvent()
     data object HighRiskWarning : CallServerEvent()
     data object RequestCodeword : CallServerEvent()
@@ -68,7 +74,10 @@ fun parseCallServerEvent(text: String): CallServerEvent? {
         "analysis_result" -> CallServerEvent.AnalysisResult(
             isSuspicious = obj["is_suspicious"]?.jsonPrimitive?.boolean ?: false,
             confidence = obj["confidence"]?.jsonPrimitive?.doubleOrNull ?: 0.0,
-            reason = obj["reason"]?.jsonPrimitive?.contentOrNull.orEmpty()
+            reason = obj["reason"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+            flaggedKeywords = obj["flagged_keywords"]?.jsonArray
+                ?.mapNotNull { it.jsonPrimitive.contentOrNull }
+                ?: emptyList()
         )
         "request_voice_check" -> CallServerEvent.RequestVoiceCheck
         "high_risk_warning" -> CallServerEvent.HighRiskWarning
