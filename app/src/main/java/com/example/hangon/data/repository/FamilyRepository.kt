@@ -42,7 +42,8 @@ class RetrofitFamilyRepository(
         } catch (e: CancellationException) {
             throw e
         } catch (e: HttpException) {
-            ApiResult.Failure(e.response()?.errorBody()?.string() ?: "An error occurred (${e.code()})")
+            val fallback = "An error occurred (${e.code()})"
+            ApiResult.Failure(parseApiErrorMessage(e.response()?.errorBody()?.string(), fallback))
         } catch (e: IOException) {
             ApiResult.Failure("Unable to connect to the server. Please check your connection.")
         } catch (e: Exception) {

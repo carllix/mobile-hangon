@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val MIN_PASSWORD_LENGTH = 6
+private const val MAX_NAME_LENGTH = 30
 
 data class RegisterUiState(
     val fullName: String = "",
@@ -31,7 +32,7 @@ class RegisterViewModel(
     val uiState: StateFlow<RegisterUiState> = _uiState.asStateFlow()
 
     fun onFullNameChange(value: String) {
-        _uiState.update { it.copy(fullName = value, errorMessage = null) }
+        _uiState.update { it.copy(fullName = value.take(MAX_NAME_LENGTH), errorMessage = null) }
     }
 
     fun onEmailChange(value: String) {

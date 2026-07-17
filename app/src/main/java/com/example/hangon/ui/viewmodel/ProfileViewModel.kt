@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+private const val MAX_NAME_LENGTH = 30
+
 data class ProfileUiState(
     val isLoading: Boolean = false,
     val profile: UserProfile? = null,
@@ -54,7 +56,7 @@ class ProfileViewModel(
     }
 
     fun onNameInputChange(value: String) {
-        _uiState.update { it.copy(nameInput = value) }
+        _uiState.update { it.copy(nameInput = value.take(MAX_NAME_LENGTH)) }
     }
 
     fun onSaveName() {
