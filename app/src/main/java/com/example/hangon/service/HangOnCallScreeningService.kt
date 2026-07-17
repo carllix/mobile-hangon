@@ -11,6 +11,7 @@ class HangOnCallScreeningService : CallScreeningService() {
     override fun onScreenCall(callDetails: Call.Details) {
         respondToCall(callDetails, CallResponse.Builder().build())
 
+        if (callDetails.callDirection != Call.Details.DIRECTION_INCOMING) return
         val phoneNumber = callDetails.handle?.schemeSpecificPart ?: return
         if (!AppPrefs.isAppActivated) return
         if (ContactsHelper.isKnownContact(applicationContext, phoneNumber)) return
