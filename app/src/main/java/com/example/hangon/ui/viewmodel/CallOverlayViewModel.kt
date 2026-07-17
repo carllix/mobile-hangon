@@ -214,6 +214,8 @@ class CallOverlayViewModel(
             }
 
             is CallServerEvent.Error -> _uiState.update { it.copy(connectionError = event.detail) }
+
+            CallServerEvent.CallEndedLocally -> endCall()
         }
     }
 

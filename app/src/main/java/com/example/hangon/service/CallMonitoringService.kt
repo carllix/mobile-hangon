@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.hangon.service
 
 import android.Manifest
@@ -15,6 +17,8 @@ import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
+import android.telephony.PhoneStateListener
+import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -71,6 +75,10 @@ class CallMonitoringService : Service() {
     private var audioJob: Job? = null
     private var audioRecord: AudioRecord? = null
 
+    private var telephonyManager: TelephonyManager? = null
+    private var callStateListener: PhoneStateListener? = null
+    private var hasSeenActiveCallState = false
+
     override fun onBind(intent: Intent?): IBinder = binder
 
     override fun onCreate() {
@@ -86,6 +94,7 @@ class CallMonitoringService : Service() {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
         )
         connectWebSocket(callId, phoneNumber, idToken)
+        registerCallStateListener()
     }
 
     fun sendUserDecision(choice: String) {
@@ -107,6 +116,7 @@ class CallMonitoringService : Service() {
 
     fun stopMonitoring() {
         stopAudioCapture()
+        unregisterCallStateListener()
         webSocket?.close(1000, "client_stop")
         webSocket = null
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
@@ -115,9 +125,47 @@ class CallMonitoringService : Service() {
 
     override fun onDestroy() {
         stopAudioCapture()
+        unregisterCallStateListener()
         webSocket?.close(1000, "service_destroyed")
         serviceJob.cancel()
         super.onDestroy()
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun registerCallStateListener() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        val manager = getSystemService(TelephonyManager::class.java) ?: return
+        val listener = object : PhoneStateListener() {
+            override fun onCallStateChanged(state: Int, phoneNumber: String?) {
+                if (state == TelephonyManager.CALL_STATE_IDLE) {
+                    if (hasSeenActiveCallState) {
+                        handleRealCallEnded()
+                    }
+                } else {
+                    hasSeenActiveCallState = true
+                }
+            }
+        }
+        manager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE)
+        telephonyManager = manager
+        callStateListener = listener
+    }
+
+    private fun unregisterCallStateListener() {
+        callStateListener?.let { telephonyManager?.listen(it, PhoneStateListener.LISTEN_NONE) }
+        callStateListener = null
+        telephonyManager = null
+    }
+
+    private fun handleRealCallEnded() {
+        stopAudioCapture()
+        send(EndSessionMessage())
+        serviceScope.launch { _events.emit(CallServerEvent.CallEndedLocally) }
     }
 
     private inline fun <reified T> send(message: T) {

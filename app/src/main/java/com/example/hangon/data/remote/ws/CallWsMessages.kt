@@ -54,6 +54,7 @@ sealed class CallServerEvent {
     data object ResumedMonitoring : CallServerEvent()
     data class SessionSummary(val logId: String, val verificationStatus: String) : CallServerEvent()
     data class Error(val detail: String) : CallServerEvent()
+    data object CallEndedLocally : CallServerEvent()
 }
 
 private val json = Json { ignoreUnknownKeys = true }

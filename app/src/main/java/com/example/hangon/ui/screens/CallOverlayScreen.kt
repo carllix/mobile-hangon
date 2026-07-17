@@ -10,11 +10,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -85,17 +83,27 @@ fun CallOverlayScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         if (uiState.stage == CallStage.RINGING_CONSENT) {
             CallConfirmationCard(
                 onYes = viewModel::onAcceptWithHangOn,
                 onNo = viewModel::onSkip
             )
         } else {
-            MonitoringStatusChip(
-                elapsedSeconds = uiState.callElapsedSeconds,
-                onStop = viewModel::onDeclineDuringCall
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                MonitoringStatusChip(
+                    elapsedSeconds = uiState.callElapsedSeconds,
+                    onStop = viewModel::onDeclineDuringCall,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             when (uiState.stage) {
                 CallStage.SUSPICIOUS_FLAGGED -> SuspiciousActivityCard(
@@ -135,15 +143,13 @@ fun CallOverlayScreen(
 }
 
 @Composable
-private fun BoxScope.MonitoringStatusChip(elapsedSeconds: Int, onStop: () -> Unit) {
+private fun MonitoringStatusChip(elapsedSeconds: Int, onStop: () -> Unit, modifier: Modifier = Modifier) {
     val minutes = elapsedSeconds / 60
     val seconds = elapsedSeconds % 60
     val timeText = "%02d:%02d".format(minutes, seconds)
 
     Surface(
-        modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(top = 16.dp, end = 16.dp),
+        modifier = modifier.padding(end = 16.dp),
         shape = RoundedCornerShape(20.dp),
         color = CallBackgroundColor.copy(alpha = 0.9f)
     ) {
@@ -175,14 +181,13 @@ private fun BoxScope.MonitoringStatusChip(elapsedSeconds: Int, onStop: () -> Uni
 }
 
 @Composable
-fun BoxScope.CallConfirmationCard(onYes: () -> Unit, onNo: () -> Unit) {
+fun CallConfirmationCard(onYes: () -> Unit, onNo: () -> Unit) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
     AnimatedVisibility(
         visible = visible,
-        enter = slideInVertically(initialOffsetY = { it / 2 }, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
-        modifier = Modifier.align(Alignment.Center)
+        enter = slideInVertically(initialOffsetY = { it / 2 }, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn()
     ) {
         OverlayCardShell {
             Box(
@@ -252,7 +257,7 @@ fun BoxScope.CallConfirmationCard(onYes: () -> Unit, onNo: () -> Unit) {
 }
 
 @Composable
-private fun BoxScope.SuspiciousActivityCard(
+private fun SuspiciousActivityCard(
     uiState: CallOverlayUiState,
     onContinue: () -> Unit,
     onEndCall: () -> Unit
@@ -330,7 +335,7 @@ private fun BoxScope.SuspiciousActivityCard(
 }
 
 @Composable
-private fun BoxScope.CodewordPromptCard(onRequestInput: () -> Unit) {
+private fun CodewordPromptCard(onRequestInput: () -> Unit) {
     AnimatedOverlayCard {
         OverlayCardShell {
             Box(
@@ -377,7 +382,7 @@ private fun BoxScope.CodewordPromptCard(onRequestInput: () -> Unit) {
 }
 
 @Composable
-private fun BoxScope.CodewordInputCard(
+private fun CodewordInputCard(
     uiState: CallOverlayUiState,
     onInputChange: (String) -> Unit,
     onVerify: () -> Unit
@@ -445,7 +450,7 @@ private fun BoxScope.CodewordInputCard(
 }
 
 @Composable
-private fun BoxScope.CodewordVerifiedCard() {
+private fun CodewordVerifiedCard() {
     AnimatedOverlayCard {
         OverlayCardShell {
             Column(
@@ -469,7 +474,7 @@ private fun BoxScope.CodewordVerifiedCard() {
 }
 
 @Composable
-private fun BoxScope.VoiceCheckCard(onResponse: (recognized: Boolean) -> Unit) {
+private fun VoiceCheckCard(onResponse: (recognized: Boolean) -> Unit) {
     AnimatedOverlayCard {
         OverlayCardShell {
             Spacer(modifier = Modifier.height(28.dp))
@@ -531,7 +536,7 @@ private fun BoxScope.VoiceCheckCard(onResponse: (recognized: Boolean) -> Unit) {
 }
 
 @Composable
-private fun BoxScope.HighRiskWarningCard(onEndCall: () -> Unit, onContinueAtOwnRisk: () -> Unit) {
+private fun HighRiskWarningCard(onEndCall: () -> Unit, onContinueAtOwnRisk: () -> Unit) {
     AnimatedOverlayCard {
         OverlayCardShell {
             Box(
@@ -599,7 +604,7 @@ private fun BoxScope.HighRiskWarningCard(onEndCall: () -> Unit, onContinueAtOwnR
 }
 
 @Composable
-private fun BoxScope.SessionSummaryCard(verificationStatus: String?) {
+private fun SessionSummaryCard(verificationStatus: String?) {
     val (icon, tint, label) = when (verificationStatus) {
         "terverifikasi" -> Triple(Icons.Filled.VerifiedUser, SuccessGreen, "Caller Verified")
         "gagal" -> Triple(Icons.Filled.GppBad, DangerRed, "Verification Failed")
@@ -629,11 +634,9 @@ private fun BoxScope.SessionSummaryCard(verificationStatus: String?) {
 }
 
 @Composable
-private fun BoxScope.ResumedMonitoringBanner() {
+private fun ResumedMonitoringBanner() {
     Surface(
-        modifier = Modifier
-            .align(Alignment.TopCenter)
-            .padding(top = 60.dp, start = 24.dp, end = 24.dp),
+        modifier = Modifier.padding(horizontal = 24.dp),
         shape = RoundedCornerShape(14.dp),
         color = HangOnBlueDark
     ) {
@@ -654,11 +657,9 @@ private fun BoxScope.ResumedMonitoringBanner() {
 }
 
 @Composable
-private fun BoxScope.ConnectionErrorBanner(message: String) {
+private fun ConnectionErrorBanner(message: String) {
     Surface(
-        modifier = Modifier
-            .align(Alignment.TopCenter)
-            .padding(top = 60.dp, start = 24.dp, end = 24.dp),
+        modifier = Modifier.padding(horizontal = 24.dp),
         shape = RoundedCornerShape(14.dp),
         color = DangerRed
     ) {
@@ -674,14 +675,13 @@ private fun BoxScope.ConnectionErrorBanner(message: String) {
 }
 
 @Composable
-private fun BoxScope.AnimatedOverlayCard(content: @Composable () -> Unit) {
+private fun AnimatedOverlayCard(content: @Composable () -> Unit) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
     AnimatedVisibility(
         visible = visible,
-        enter = slideInVertically(initialOffsetY = { it / 2 }, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn(),
-        modifier = Modifier.align(Alignment.Center)
+        enter = slideInVertically(initialOffsetY = { it / 2 }, animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)) + fadeIn()
     ) {
         content()
     }

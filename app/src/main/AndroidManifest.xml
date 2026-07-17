@@ -10,7 +10,6 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- Optional permission -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -38,18 +37,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Overlay activity shown when unrecognized call detected -->
-        <activity
-            android:name=".ui.CallOverlayActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Transparent"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
-            android:launchMode="singleTask"
-            android:taskAffinity=""
-            android:excludeFromRecents="true" />
-
-        <!-- Detects incoming calls; launches CallOverlayActivity for unrecognized numbers -->
+        <!-- Detects incoming calls; starts CallOverlayWindowService for unrecognized numbers -->
         <service
             android:name=".service.HangOnCallScreeningService"
             android:exported="true"
@@ -58,6 +46,13 @@
                 <action android:name="android.telecom.CallScreeningService" />
             </intent-filter>
         </service>
+
+        <!-- Draws the "Ya, Temani" consent card + state-machine UI as a real "draw over other
+             apps" overlay window (not an Activity), so it floats above the system/dialer call
+             screen instead of competing with it for Activity task ordering. -->
+        <service
+            android:name=".service.CallOverlayWindowService"
+            android:exported="false" />
 
         <!-- Foreground service streaming call audio to the backend over WebSocket -->
         <service

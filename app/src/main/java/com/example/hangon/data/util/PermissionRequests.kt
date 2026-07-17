@@ -12,9 +12,9 @@ object PermissionRequests {
 
     fun runtimePermissionsFor(id: String): Array<String> = when (id) {
         "audio" -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.POST_NOTIFICATIONS)
+            arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_PHONE_STATE, Manifest.permission.POST_NOTIFICATIONS)
         } else {
-            arrayOf(Manifest.permission.RECORD_AUDIO)
+            arrayOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_PHONE_STATE)
         }
         "contacts" -> arrayOf(Manifest.permission.READ_CONTACTS)
         else -> emptyArray()
